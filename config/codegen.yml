@@ -1,0 +1,14 @@
+# This configuration file tells GraphQL Code Generator how
+# to generate types based on our schema.
+schema: "./graphql/type-defs/oidc-type-defs.graphql"
+generates:
+  # Specify where our generated types should live.
+  ./graphql/generated/graphql-types.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-resolvers"
+      - "./graphql-typedef-plugin.js"
+    config:
+      useIndexSignature: true
+      contextType: "../graphql-context#OIDCContext"

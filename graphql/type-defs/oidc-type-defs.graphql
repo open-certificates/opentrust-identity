@@ -1,0 +1,133 @@
+
+type Query {
+    getTenants: [Tenant!]!
+    getTenantById(tenantId: String!): Tenant
+    getClients(tenantId: String!): [Client!]!
+    getClientById(clientId: String!): Client!
+    getUsers(tenantId: String!): [User!]!
+    getUserById(userId: String!): User!
+    getUserGroups(userId: String!): [Group!]!
+    getLoginGroups: [LoginGroup!]!
+    getLoginGroupById(loginGroupId: String!): LoginGroup!
+    getGroups: [Group!]!
+    getRateLimits(tenantId: String!): [RateLimit!]!
+}
+
+type Mutation {
+    createTenant: Tenant
+}
+
+########
+# 1.    clients -            List of clients that belong to this tenant. 
+# 2.    enabled -            true | false
+# 3.    signingKeys -        Optional list of signing keys for this tenant. Default is system-wide signing keys
+# 4.    allowedScopeValues - ALL of the scopes that are available for the tenant. A subset of these are
+#                            available to each of the clients
+# 5.    claimsSupported -    Of all of the OIDC claims, which does this tenant support
+# 6.    userAccounts -       All of the users who belong to this tenant
+# 7.    rateLimits -         Based on the type of resource, how many requests / 15 minutes to allow before returning a 429
+# 8.    allowUnlimitedRate - true | false. True will override any rate limit set in the rateLimits property
+
+type Tenant {
+    clients: [Client!]!
+    enabled: Boolean!
+    signingKeys: [Key!]!
+    allowedScopeValues: [String!]!
+    claimsSupported: [String!]!
+    userAccounts: [User]
+    rateLimits: [RateLimit]
+    allowUnlimitedRate: Boolean
+}
+
+# 1.    tenantId -      Parent tenant (write once, read only)
+# 2.    clientId -      GUID
+# 3.    clientSecret -  A 256-bit hex-encoded value
+# 4.    enabled -       true | false
+# 5.    scope -         Subset list of scope values from the parent tenant to allow for this client
+# 6.    redirectUris - List of redirect URIs for authorization
+# 7.    loginGroupId - List of groupd ids (default is empty, which implies ALL users in the userAccounts property)
+#                      where each group id will contain a list of user ids to allow for SSO for this client.
+# 8.    oidcEnabled -  Allow SSO for this client
+
+type Client {
+    tenantId: String!
+    clientId: String!
+    clientSecret: String!
+    enabled: Boolean
+    scope: [String!]!
+    redirectUris: [String!]
+    loginGroupIds: [String]
+    oidcEnabled: Boolean
+}
+
+type User {
+    userId: String!
+    email: String!
+    firstName: String!
+    lastName: String!
+    middleName: String
+    phoneNumber: String
+    address: String
+    createdDate: String
+    updatedDate: String
+    countryCode: String
+    preferredLanguageCode: String    
+}
+
+type LoginGroup {
+    loginGroupId: String!
+    loginGroupName: String!
+    loginGroupDescription: String
+}
+
+type LoginGroupUserRel {
+    loginGroupId: String!
+    userId: String!
+}
+
+type Group {
+    groupId: String!
+    groupName: String!
+}
+
+type UserGroupRel {
+    userId: String!
+    groupId: String!
+}
+
+type UserCredential {
+    userId: String!
+    salt: String!
+    hashedPassword: String!
+}
+
+type UserCredentialHistory {
+    userId: String!
+    salt: String!
+    hashedPassword: String!
+}
+
+type Key {
+    keyId: String!
+    keyType: String!
+    use: String!
+    n: String!
+    e: String!
+    x5c: [String!]!
+    exp: String!
+}
+
+# 1.    rateLimitId
+# 2.    rateLimitDomain  -  User-defined name of the context or other identifier which will be used by the application
+#                           to make rate limiting decisions. If you need just one then it can be global.
+# 3.    rateLimitDescription  -  
+# 4.    allowUnlimitedRate  -  true | false
+# 5.    rateLimit  -  Number of requests per period.
+type RateLimit {
+    rateLimitId: String!
+    rateLimitDomain: String!
+    rateLimitDescription: String
+    allowUnlimitedRate: Boolean
+    rateLimit: Int
+    rateLimitPeriodMinutes: Int
+}
