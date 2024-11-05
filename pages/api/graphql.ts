@@ -27,7 +27,7 @@ export default startServerAndCreateNextHandler(server, {
         return {
             req,
             res,
-            authToken: "asdfasdfasdfadfadf"        
+            authToken: ""        
         }
     }
 });
