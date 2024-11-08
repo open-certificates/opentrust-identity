@@ -64,6 +64,11 @@ export type Mutation = {
   createTenant?: Maybe<Tenant>;
 };
 
+
+export type MutationCreateTenantArgs = {
+  tenantInput: TenantInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   getClientById: Client;
@@ -127,6 +132,7 @@ export type RateLimit = {
   rateLimitDomain: Scalars['String']['output'];
   rateLimitId: Scalars['String']['output'];
   rateLimitPeriodMinutes?: Maybe<Scalars['Int']['output']>;
+  tenantId: Scalars['String']['output'];
 };
 
 export type Tenant = {
@@ -138,7 +144,16 @@ export type Tenant = {
   enabled: Scalars['Boolean']['output'];
   rateLimits?: Maybe<Array<Maybe<RateLimit>>>;
   signingKeys: Array<Key>;
+  tenantId: Scalars['String']['output'];
   userAccounts?: Maybe<Array<Maybe<User>>>;
+};
+
+export type TenantInput = {
+  allowUnlimitedRate?: InputMaybe<Scalars['Boolean']['input']>;
+  allowedScopeValues: Array<Scalars['String']['input']>;
+  claimsSupported: Array<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  tenantId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type User = {
@@ -260,6 +275,7 @@ export type ResolversTypes = ResolversObject<{
   RateLimit: ResolverTypeWrapper<RateLimit>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Tenant: ResolverTypeWrapper<Tenant>;
+  TenantInput: TenantInput;
   User: ResolverTypeWrapper<User>;
   UserCredential: ResolverTypeWrapper<UserCredential>;
   UserCredentialHistory: ResolverTypeWrapper<UserCredentialHistory>;
@@ -280,6 +296,7 @@ export type ResolversParentTypes = ResolversObject<{
   RateLimit: RateLimit;
   String: Scalars['String']['output'];
   Tenant: Tenant;
+  TenantInput: TenantInput;
   User: User;
   UserCredential: UserCredential;
   UserCredentialHistory: UserCredentialHistory;
@@ -329,7 +346,7 @@ export type LoginGroupUserRelResolvers<ContextType = OIDCContext, ParentType ext
 }>;
 
 export type MutationResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  createTenant?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType>;
+  createTenant?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType, RequireFields<MutationCreateTenantArgs, 'tenantInput'>>;
 }>;
 
 export type QueryResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
@@ -353,6 +370,7 @@ export type RateLimitResolvers<ContextType = OIDCContext, ParentType extends Res
   rateLimitDomain?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rateLimitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rateLimitPeriodMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -364,6 +382,7 @@ export type TenantResolvers<ContextType = OIDCContext, ParentType extends Resolv
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rateLimits?: Resolver<Maybe<Array<Maybe<ResolversTypes['RateLimit']>>>, ParentType, ContextType>;
   signingKeys?: Resolver<Array<ResolversTypes['Key']>, ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userAccounts?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -422,4 +441,4 @@ export type Resolvers<ContextType = OIDCContext> = ResolversObject<{
 
 
 import gql from 'graphql-tag';
-export const typeDefs = gql(`schema{query:Query mutation:Mutation}type Client{clientId:String!clientSecret:String!enabled:Boolean loginGroupIds:[String]oidcEnabled:Boolean redirectUris:[String!]scope:[String!]!tenantId:String!}type Group{groupId:String!groupName:String!}type Key{e:String!exp:String!keyId:String!keyType:String!n:String!use:String!x5c:[String!]!}type LoginGroup{loginGroupDescription:String loginGroupId:String!loginGroupName:String!}type LoginGroupUserRel{loginGroupId:String!userId:String!}type Mutation{createTenant:Tenant}type Query{getClientById(clientId:String!):Client!getClients(tenantId:String!):[Client!]!getGroups:[Group!]!getLoginGroupById(loginGroupId:String!):LoginGroup!getLoginGroups:[LoginGroup!]!getRateLimits(tenantId:String!):[RateLimit!]!getTenantById(tenantId:String!):Tenant getTenants:[Tenant!]!getUserById(userId:String!):User!getUserGroups(userId:String!):[Group!]!getUsers(tenantId:String!):[User!]!}type RateLimit{allowUnlimitedRate:Boolean rateLimit:Int rateLimitDescription:String rateLimitDomain:String!rateLimitId:String!rateLimitPeriodMinutes:Int}type Tenant{allowUnlimitedRate:Boolean allowedScopeValues:[String!]!claimsSupported:[String!]!clients:[Client!]!enabled:Boolean!rateLimits:[RateLimit]signingKeys:[Key!]!userAccounts:[User]}type User{address:String countryCode:String createdDate:String email:String!firstName:String!lastName:String!middleName:String phoneNumber:String preferredLanguageCode:String updatedDate:String userId:String!}type UserCredential{hashedPassword:String!salt:String!userId:String!}type UserCredentialHistory{hashedPassword:String!salt:String!userId:String!}type UserGroupRel{groupId:String!userId:String!}`);
+export const typeDefs = gql(`schema{query:Query mutation:Mutation}type Client{clientId:String!clientSecret:String!enabled:Boolean loginGroupIds:[String]oidcEnabled:Boolean redirectUris:[String!]scope:[String!]!tenantId:String!}type Group{groupId:String!groupName:String!}type Key{e:String!exp:String!keyId:String!keyType:String!n:String!use:String!x5c:[String!]!}type LoginGroup{loginGroupDescription:String loginGroupId:String!loginGroupName:String!}type LoginGroupUserRel{loginGroupId:String!userId:String!}type Mutation{createTenant(tenantInput:TenantInput!):Tenant}type Query{getClientById(clientId:String!):Client!getClients(tenantId:String!):[Client!]!getGroups:[Group!]!getLoginGroupById(loginGroupId:String!):LoginGroup!getLoginGroups:[LoginGroup!]!getRateLimits(tenantId:String!):[RateLimit!]!getTenantById(tenantId:String!):Tenant getTenants:[Tenant!]!getUserById(userId:String!):User!getUserGroups(userId:String!):[Group!]!getUsers(tenantId:String!):[User!]!}type RateLimit{allowUnlimitedRate:Boolean rateLimit:Int rateLimitDescription:String rateLimitDomain:String!rateLimitId:String!rateLimitPeriodMinutes:Int tenantId:String!}type Tenant{allowUnlimitedRate:Boolean allowedScopeValues:[String!]!claimsSupported:[String!]!clients:[Client!]!enabled:Boolean!rateLimits:[RateLimit]signingKeys:[Key!]!tenantId:String!userAccounts:[User]}input TenantInput{allowUnlimitedRate:Boolean allowedScopeValues:[String!]!claimsSupported:[String!]!enabled:Boolean!tenantId:String}type User{address:String countryCode:String createdDate:String email:String!firstName:String!lastName:String!middleName:String phoneNumber:String preferredLanguageCode:String updatedDate:String userId:String!}type UserCredential{hashedPassword:String!salt:String!userId:String!}type UserCredentialHistory{hashedPassword:String!salt:String!userId:String!}type UserGroupRel{groupId:String!userId:String!}`);

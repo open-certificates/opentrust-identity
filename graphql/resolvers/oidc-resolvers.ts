@@ -1,40 +1,38 @@
-import { Resolvers, QueryResolvers, MutationResolvers } from "../generated/graphql-types";
+import { Resolvers, QueryResolvers, MutationResolvers, Tenant } from "../generated/graphql-types";
+import TenantDao from "@/lib/dao/tenant-dao";
+import { getTenantDaoImpl } from "@/utils/dao-utils";
+
+
+const tenantDao: TenantDao = getTenantDaoImpl();
 
 
 const resolvers: Resolvers = {
     Query: {
         getTenants: (_, __, { authToken }) => {
-            return [];
+            return tenantDao.getTenants();
         },
         getClients: (_, __, {authToken }) => {
-            return [];
+            return tenantDao.getClients();
         },
-        getTenantById: (_: any, {  }: any, {  }: any ) => {
-            return {
-                allowedScopeValues: ["scope.update"],
-                claimsSupported: ["email"],
-                clients: [],
-                enabled: true,
-                signingKeys: [],
-                allowUnlimitedRate: true,
-                rateLimits: [],
-                userAccounts: []
-            }
+        getTenantById: (_: any, { tenantId }, { authToekn }: any ) => {
+            return tenantDao.getTenantById(tenantId);
         }
     },
     Mutation: {
-        createTenant: (_: any, __: any, { authToken }) => {
+        createTenant: async (_: any, { tenantInput }, { authToken }) => {
             console.log('auth token is: ' + authToken);
-            return {
-                allowedScopeValues: ["scope.update"],
-                claimsSupported: ["email"],
+            let tenant: Tenant = {
+                allowedScopeValues: tenantInput.allowedScopeValues,
+                claimsSupported: tenantInput.claimsSupported,
                 clients: [],
                 enabled: true,
                 signingKeys: [],
-                allowUnlimitedRate: true,
-                rateLimits: [],
-                userAccounts: []
+                tenantId: "",
+                allowUnlimitedRate: tenantInput.allowUnlimitedRate
             }
+            await tenantDao.addTenant(tenant);
+
+            return tenant; 
         }
     }
 }

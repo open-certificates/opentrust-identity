@@ -1,58 +1,36 @@
+import { Client, Key, RateLimit, Tenant } from "@/graphql/generated/graphql-types";
 
 
-class TenantDAO {
+abstract class TenantDao {
 
-    public async getTenants(){
+    abstract getTenants(): Promise<Array<Tenant>>;
+ 
+    abstract getTenantById(tenantId: string): Promise<Tenant | null>;
 
-    }
+    abstract getClients(): Promise<Array<Client>>;
+    
+    abstract getClientById(clientId: string): Promise<Client | null>;
 
-    public async getTenantById(tenantId: string){
+    abstract getClientsByTenant(tenantId: string): Promise<Array<Client>>;
 
-    }
+    abstract addTenant(tenant: Tenant): Promise<Tenant | null>;
 
-    public async getClients(){
+    abstract updateTenant(tenant: Tenant): Promise<Tenant>;
 
-    }
+    abstract deleteTenant(tenantId: string): Promise<void>;
 
-    public async getClientById(clientId: string){
+    abstract addClient(tenantId: string, client: Client): Promise<Client>;
 
-    }
+    abstract updateClient(client: Client): Promise<Client>;
 
-    public async getClientsByTenant(tenantId: string){
+    abstract deleteClient(clientId: string): Promise<void>;
 
-    }
+    abstract getSigningKeys(): Promise<Array<Key>>;
 
-    public async addTenant() {
+    abstract createRateLimitDefinition(rateLimitDef: RateLimit): Promise<RateLimit>;
 
-    }
+    abstract updateRateLimitDefinition(rateLimitDef: RateLimit): Promise<RateLimit>;
 
-    public async updateTenant(){
-
-    }
-
-    public async deleteTenant(){
-
-    }
-
-    public async addClient(tenantId: string, client: any){
-
-    }
-
-    public async updateClient(){
-
-    }
-
-    public async deleteClient(){
-
-    }
-
-    public async getSigningKeys(){
-
-    }
-
-    public async createRateLimitDefinition(){
-        
-    }
 }
 
-export default TenantDAO;
+export default TenantDao;

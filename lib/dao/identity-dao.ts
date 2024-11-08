@@ -1,12 +1,12 @@
 
-class IdentityDao {
+abstract class IdentityDao {
 
     public async getUsersByClientId(clientId: string){
 
     }
 
     public async loginUser(){
-        
+
     }
 
     public async createUser(){

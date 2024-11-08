@@ -14,7 +14,11 @@ type Query {
 }
 
 type Mutation {
-    createTenant: Tenant
+    createTenant(tenantInput: TenantInput!): Tenant
+    updateTenant(tenantInput: TenantInput!): Tenant
+
+    createClient(clientInput: ClientInput!): Client
+    updateClient(clientInput: ClientInput!): Client
 }
 
 ########
@@ -29,6 +33,7 @@ type Mutation {
 # 8.    allowUnlimitedRate - true | false. True will override any rate limit set in the rateLimits property
 
 type Tenant {
+    tenantId: String!
     clients: [Client!]!
     enabled: Boolean!
     signingKeys: [Key!]!
@@ -36,6 +41,14 @@ type Tenant {
     claimsSupported: [String!]!
     userAccounts: [User]
     rateLimits: [RateLimit]
+    allowUnlimitedRate: Boolean
+}
+
+input TenantInput {
+    tenantId: String
+    enabled: Boolean!
+    allowedScopeValues: [String!]!
+    claimsSupported: [String!]!
     allowUnlimitedRate: Boolean
 }
 
@@ -53,6 +66,17 @@ type Client {
     tenantId: String!
     clientId: String!
     clientSecret: String!
+    enabled: Boolean
+    scope: [String!]!
+    redirectUris: [String!]
+    loginGroupIds: [String]
+    oidcEnabled: Boolean
+}
+
+type ClientInput {
+    tenantId: String!
+    clientId: String
+    clientSecret: String
     enabled: Boolean
     scope: [String!]!
     redirectUris: [String!]
