@@ -19,20 +19,49 @@ export type Scalars = {
 
 export type Client = {
   __typename?: 'Client';
+  clientDescription?: Maybe<Scalars['String']['output']>;
   clientId: Scalars['String']['output'];
+  clientName: Scalars['String']['output'];
   clientSecret: Scalars['String']['output'];
   enabled?: Maybe<Scalars['Boolean']['output']>;
-  loginGroupIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  oidcEnabled?: Maybe<Scalars['Boolean']['output']>;
+  oidcEnabled: Scalars['Boolean']['output'];
+  pkceEnabled: Scalars['Boolean']['output'];
   redirectUris?: Maybe<Array<Scalars['String']['output']>>;
-  scope: Array<Scalars['String']['output']>;
   tenantId: Scalars['String']['output'];
+};
+
+export type ClientCreateInput = {
+  clientDescription?: InputMaybe<Scalars['String']['input']>;
+  clientName: Scalars['String']['input'];
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  oidcEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  pkceEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']['input']>>;
+  tenantId: Scalars['String']['input'];
+};
+
+export type ClientScopeRel = {
+  __typename?: 'ClientScopeRel';
+  clientId: Scalars['String']['output'];
+  scopeId: Scalars['String']['output'];
+};
+
+export type ClientUpdateInput = {
+  clientDescription?: InputMaybe<Scalars['String']['input']>;
+  clientId: Scalars['String']['input'];
+  clientName: Scalars['String']['input'];
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  oidcEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  pkceEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']['input']>>;
+  tenantId: Scalars['String']['input'];
 };
 
 export type Group = {
   __typename?: 'Group';
   groupId: Scalars['String']['output'];
   groupName: Scalars['String']['output'];
+  tenantId?: Maybe<Scalars['String']['output']>;
 };
 
 export type Key = {
@@ -42,6 +71,7 @@ export type Key = {
   keyId: Scalars['String']['output'];
   keyType: Scalars['String']['output'];
   n: Scalars['String']['output'];
+  tenantId: Scalars['String']['output'];
   use: Scalars['String']['output'];
   x5c: Array<Scalars['String']['output']>;
 };
@@ -51,6 +81,13 @@ export type LoginGroup = {
   loginGroupDescription?: Maybe<Scalars['String']['output']>;
   loginGroupId: Scalars['String']['output'];
   loginGroupName: Scalars['String']['output'];
+  tenantId: Scalars['String']['output'];
+};
+
+export type LoginGroupClientRel = {
+  __typename?: 'LoginGroupClientRel';
+  clientId: Scalars['String']['output'];
+  loginGroupId: Scalars['String']['output'];
 };
 
 export type LoginGroupUserRel = {
@@ -61,17 +98,35 @@ export type LoginGroupUserRel = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createClient?: Maybe<Client>;
   createTenant?: Maybe<Tenant>;
+  updateClient?: Maybe<Client>;
+  updateTenant?: Maybe<Tenant>;
+};
+
+
+export type MutationCreateClientArgs = {
+  clientInput: ClientCreateInput;
 };
 
 
 export type MutationCreateTenantArgs = {
-  tenantInput: TenantInput;
+  tenantInput: TenantCreateInput;
+};
+
+
+export type MutationUpdateClientArgs = {
+  clientInput: ClientUpdateInput;
+};
+
+
+export type MutationUpdateTenantArgs = {
+  tenantInput: TenantUpdateInput;
 };
 
 export type Query = {
   __typename?: 'Query';
-  getClientById: Client;
+  getClientById?: Maybe<Client>;
   getClients: Array<Client>;
   getGroups: Array<Group>;
   getLoginGroupById: LoginGroup;
@@ -79,7 +134,7 @@ export type Query = {
   getRateLimits: Array<RateLimit>;
   getTenantById?: Maybe<Tenant>;
   getTenants: Array<Tenant>;
-  getUserById: User;
+  getUserById?: Maybe<User>;
   getUserGroups: Array<Group>;
   getUsers: Array<User>;
 };
@@ -135,38 +190,53 @@ export type RateLimit = {
   tenantId: Scalars['String']['output'];
 };
 
+export type Scope = {
+  __typename?: 'Scope';
+  scopeDescription?: Maybe<Scalars['String']['output']>;
+  scopeId: Scalars['String']['output'];
+  scopeName: Scalars['String']['output'];
+  tenantId: Scalars['String']['output'];
+};
+
 export type Tenant = {
   __typename?: 'Tenant';
   allowUnlimitedRate?: Maybe<Scalars['Boolean']['output']>;
-  allowedScopeValues: Array<Scalars['String']['output']>;
   claimsSupported: Array<Scalars['String']['output']>;
-  clients: Array<Client>;
   enabled: Scalars['Boolean']['output'];
-  rateLimits?: Maybe<Array<Maybe<RateLimit>>>;
-  signingKeys: Array<Key>;
+  tenantDescription?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['String']['output'];
-  userAccounts?: Maybe<Array<Maybe<User>>>;
+  tenantName: Scalars['String']['output'];
 };
 
-export type TenantInput = {
+export type TenantCreateInput = {
   allowUnlimitedRate?: InputMaybe<Scalars['Boolean']['input']>;
-  allowedScopeValues: Array<Scalars['String']['input']>;
   claimsSupported: Array<Scalars['String']['input']>;
   enabled: Scalars['Boolean']['input'];
-  tenantId?: InputMaybe<Scalars['String']['input']>;
+  tenantDescription?: InputMaybe<Scalars['String']['input']>;
+  tenantName: Scalars['String']['input'];
+};
+
+export type TenantUpdateInput = {
+  allowUnlimitedRate?: InputMaybe<Scalars['Boolean']['input']>;
+  claimsSupported: Array<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  tenantDescription?: InputMaybe<Scalars['String']['input']>;
+  tenantId: Scalars['String']['input'];
+  tenantName: Scalars['String']['input'];
 };
 
 export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   countryCode?: Maybe<Scalars['String']['output']>;
-  createdDate?: Maybe<Scalars['String']['output']>;
+  createdDate: Scalars['String']['output'];
   email: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
   lastName: Scalars['String']['output'];
   middleName?: Maybe<Scalars['String']['output']>;
   phoneNumber?: Maybe<Scalars['String']['output']>;
   preferredLanguageCode?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['String']['output'];
   updatedDate?: Maybe<Scalars['String']['output']>;
   userId: Scalars['String']['output'];
 };
@@ -180,6 +250,7 @@ export type UserCredential = {
 
 export type UserCredentialHistory = {
   __typename?: 'UserCredentialHistory';
+  dateCreated: Scalars['String']['output'];
   hashedPassword: Scalars['String']['output'];
   salt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
@@ -265,17 +336,23 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Client: ResolverTypeWrapper<Client>;
+  ClientCreateInput: ClientCreateInput;
+  ClientScopeRel: ResolverTypeWrapper<ClientScopeRel>;
+  ClientUpdateInput: ClientUpdateInput;
   Group: ResolverTypeWrapper<Group>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Key: ResolverTypeWrapper<Key>;
   LoginGroup: ResolverTypeWrapper<LoginGroup>;
+  LoginGroupClientRel: ResolverTypeWrapper<LoginGroupClientRel>;
   LoginGroupUserRel: ResolverTypeWrapper<LoginGroupUserRel>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   RateLimit: ResolverTypeWrapper<RateLimit>;
+  Scope: ResolverTypeWrapper<Scope>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Tenant: ResolverTypeWrapper<Tenant>;
-  TenantInput: TenantInput;
+  TenantCreateInput: TenantCreateInput;
+  TenantUpdateInput: TenantUpdateInput;
   User: ResolverTypeWrapper<User>;
   UserCredential: ResolverTypeWrapper<UserCredential>;
   UserCredentialHistory: ResolverTypeWrapper<UserCredentialHistory>;
@@ -286,17 +363,23 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean']['output'];
   Client: Client;
+  ClientCreateInput: ClientCreateInput;
+  ClientScopeRel: ClientScopeRel;
+  ClientUpdateInput: ClientUpdateInput;
   Group: Group;
   Int: Scalars['Int']['output'];
   Key: Key;
   LoginGroup: LoginGroup;
+  LoginGroupClientRel: LoginGroupClientRel;
   LoginGroupUserRel: LoginGroupUserRel;
   Mutation: {};
   Query: {};
   RateLimit: RateLimit;
+  Scope: Scope;
   String: Scalars['String']['output'];
   Tenant: Tenant;
-  TenantInput: TenantInput;
+  TenantCreateInput: TenantCreateInput;
+  TenantUpdateInput: TenantUpdateInput;
   User: User;
   UserCredential: UserCredential;
   UserCredentialHistory: UserCredentialHistory;
@@ -304,20 +387,28 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type ClientResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Client'] = ResolversParentTypes['Client']> = ResolversObject<{
+  clientDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  clientName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   clientSecret?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  loginGroupIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
-  oidcEnabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  oidcEnabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  pkceEnabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   redirectUris?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
-  scope?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ClientScopeRelResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['ClientScopeRel'] = ResolversParentTypes['ClientScopeRel']> = ResolversObject<{
+  clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type GroupResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Group'] = ResolversParentTypes['Group']> = ResolversObject<{
   groupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   groupName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -327,6 +418,7 @@ export type KeyResolvers<ContextType = OIDCContext, ParentType extends Resolvers
   keyId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   keyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   n?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   use?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   x5c?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -336,6 +428,13 @@ export type LoginGroupResolvers<ContextType = OIDCContext, ParentType extends Re
   loginGroupDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   loginGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   loginGroupName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type LoginGroupClientRelResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['LoginGroupClientRel'] = ResolversParentTypes['LoginGroupClientRel']> = ResolversObject<{
+  clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  loginGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -346,11 +445,14 @@ export type LoginGroupUserRelResolvers<ContextType = OIDCContext, ParentType ext
 }>;
 
 export type MutationResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  createClient?: Resolver<Maybe<ResolversTypes['Client']>, ParentType, ContextType, RequireFields<MutationCreateClientArgs, 'clientInput'>>;
   createTenant?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType, RequireFields<MutationCreateTenantArgs, 'tenantInput'>>;
+  updateClient?: Resolver<Maybe<ResolversTypes['Client']>, ParentType, ContextType, RequireFields<MutationUpdateClientArgs, 'clientInput'>>;
+  updateTenant?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType, RequireFields<MutationUpdateTenantArgs, 'tenantInput'>>;
 }>;
 
 export type QueryResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  getClientById?: Resolver<ResolversTypes['Client'], ParentType, ContextType, RequireFields<QueryGetClientByIdArgs, 'clientId'>>;
+  getClientById?: Resolver<Maybe<ResolversTypes['Client']>, ParentType, ContextType, RequireFields<QueryGetClientByIdArgs, 'clientId'>>;
   getClients?: Resolver<Array<ResolversTypes['Client']>, ParentType, ContextType, RequireFields<QueryGetClientsArgs, 'tenantId'>>;
   getGroups?: Resolver<Array<ResolversTypes['Group']>, ParentType, ContextType>;
   getLoginGroupById?: Resolver<ResolversTypes['LoginGroup'], ParentType, ContextType, RequireFields<QueryGetLoginGroupByIdArgs, 'loginGroupId'>>;
@@ -358,7 +460,7 @@ export type QueryResolvers<ContextType = OIDCContext, ParentType extends Resolve
   getRateLimits?: Resolver<Array<ResolversTypes['RateLimit']>, ParentType, ContextType, RequireFields<QueryGetRateLimitsArgs, 'tenantId'>>;
   getTenantById?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType, RequireFields<QueryGetTenantByIdArgs, 'tenantId'>>;
   getTenants?: Resolver<Array<ResolversTypes['Tenant']>, ParentType, ContextType>;
-  getUserById?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryGetUserByIdArgs, 'userId'>>;
+  getUserById?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryGetUserByIdArgs, 'userId'>>;
   getUserGroups?: Resolver<Array<ResolversTypes['Group']>, ParentType, ContextType, RequireFields<QueryGetUserGroupsArgs, 'userId'>>;
   getUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryGetUsersArgs, 'tenantId'>>;
 }>;
@@ -374,29 +476,35 @@ export type RateLimitResolvers<ContextType = OIDCContext, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type ScopeResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Scope'] = ResolversParentTypes['Scope']> = ResolversObject<{
+  scopeDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  scopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scopeName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type TenantResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['Tenant'] = ResolversParentTypes['Tenant']> = ResolversObject<{
   allowUnlimitedRate?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  allowedScopeValues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   claimsSupported?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  clients?: Resolver<Array<ResolversTypes['Client']>, ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  rateLimits?: Resolver<Maybe<Array<Maybe<ResolversTypes['RateLimit']>>>, ParentType, ContextType>;
-  signingKeys?: Resolver<Array<ResolversTypes['Key']>, ParentType, ContextType>;
+  tenantDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  userAccounts?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
+  tenantName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type UserResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   countryCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  createdDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   middleName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   phoneNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   preferredLanguageCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  tenantId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -410,6 +518,7 @@ export type UserCredentialResolvers<ContextType = OIDCContext, ParentType extend
 }>;
 
 export type UserCredentialHistoryResolvers<ContextType = OIDCContext, ParentType extends ResolversParentTypes['UserCredentialHistory'] = ResolversParentTypes['UserCredentialHistory']> = ResolversObject<{
+  dateCreated?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   hashedPassword?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   salt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -424,13 +533,16 @@ export type UserGroupRelResolvers<ContextType = OIDCContext, ParentType extends 
 
 export type Resolvers<ContextType = OIDCContext> = ResolversObject<{
   Client?: ClientResolvers<ContextType>;
+  ClientScopeRel?: ClientScopeRelResolvers<ContextType>;
   Group?: GroupResolvers<ContextType>;
   Key?: KeyResolvers<ContextType>;
   LoginGroup?: LoginGroupResolvers<ContextType>;
+  LoginGroupClientRel?: LoginGroupClientRelResolvers<ContextType>;
   LoginGroupUserRel?: LoginGroupUserRelResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RateLimit?: RateLimitResolvers<ContextType>;
+  Scope?: ScopeResolvers<ContextType>;
   Tenant?: TenantResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserCredential?: UserCredentialResolvers<ContextType>;
@@ -441,4 +553,4 @@ export type Resolvers<ContextType = OIDCContext> = ResolversObject<{
 
 
 import gql from 'graphql-tag';
-export const typeDefs = gql(`schema{query:Query mutation:Mutation}type Client{clientId:String!clientSecret:String!enabled:Boolean loginGroupIds:[String]oidcEnabled:Boolean redirectUris:[String!]scope:[String!]!tenantId:String!}type Group{groupId:String!groupName:String!}type Key{e:String!exp:String!keyId:String!keyType:String!n:String!use:String!x5c:[String!]!}type LoginGroup{loginGroupDescription:String loginGroupId:String!loginGroupName:String!}type LoginGroupUserRel{loginGroupId:String!userId:String!}type Mutation{createTenant(tenantInput:TenantInput!):Tenant}type Query{getClientById(clientId:String!):Client!getClients(tenantId:String!):[Client!]!getGroups:[Group!]!getLoginGroupById(loginGroupId:String!):LoginGroup!getLoginGroups:[LoginGroup!]!getRateLimits(tenantId:String!):[RateLimit!]!getTenantById(tenantId:String!):Tenant getTenants:[Tenant!]!getUserById(userId:String!):User!getUserGroups(userId:String!):[Group!]!getUsers(tenantId:String!):[User!]!}type RateLimit{allowUnlimitedRate:Boolean rateLimit:Int rateLimitDescription:String rateLimitDomain:String!rateLimitId:String!rateLimitPeriodMinutes:Int tenantId:String!}type Tenant{allowUnlimitedRate:Boolean allowedScopeValues:[String!]!claimsSupported:[String!]!clients:[Client!]!enabled:Boolean!rateLimits:[RateLimit]signingKeys:[Key!]!tenantId:String!userAccounts:[User]}input TenantInput{allowUnlimitedRate:Boolean allowedScopeValues:[String!]!claimsSupported:[String!]!enabled:Boolean!tenantId:String}type User{address:String countryCode:String createdDate:String email:String!firstName:String!lastName:String!middleName:String phoneNumber:String preferredLanguageCode:String updatedDate:String userId:String!}type UserCredential{hashedPassword:String!salt:String!userId:String!}type UserCredentialHistory{hashedPassword:String!salt:String!userId:String!}type UserGroupRel{groupId:String!userId:String!}`);
+export const typeDefs = gql(`schema{query:Query mutation:Mutation}type Client{clientDescription:String clientId:String!clientName:String!clientSecret:String!enabled:Boolean oidcEnabled:Boolean!pkceEnabled:Boolean!redirectUris:[String!]tenantId:String!}input ClientCreateInput{clientDescription:String clientName:String!enabled:Boolean oidcEnabled:Boolean pkceEnabled:Boolean redirectUris:[String!]tenantId:String!}type ClientScopeRel{clientId:String!scopeId:String!}input ClientUpdateInput{clientDescription:String clientId:String!clientName:String!enabled:Boolean oidcEnabled:Boolean pkceEnabled:Boolean redirectUris:[String!]tenantId:String!}type Group{groupId:String!groupName:String!tenantId:String}type Key{e:String!exp:String!keyId:String!keyType:String!n:String!tenantId:String!use:String!x5c:[String!]!}type LoginGroup{loginGroupDescription:String loginGroupId:String!loginGroupName:String!tenantId:String!}type LoginGroupClientRel{clientId:String!loginGroupId:String!}type LoginGroupUserRel{loginGroupId:String!userId:String!}type Mutation{createClient(clientInput:ClientCreateInput!):Client createTenant(tenantInput:TenantCreateInput!):Tenant updateClient(clientInput:ClientUpdateInput!):Client updateTenant(tenantInput:TenantUpdateInput!):Tenant}type Query{getClientById(clientId:String!):Client getClients(tenantId:String!):[Client!]!getGroups:[Group!]!getLoginGroupById(loginGroupId:String!):LoginGroup!getLoginGroups:[LoginGroup!]!getRateLimits(tenantId:String!):[RateLimit!]!getTenantById(tenantId:String!):Tenant getTenants:[Tenant!]!getUserById(userId:String!):User getUserGroups(userId:String!):[Group!]!getUsers(tenantId:String!):[User!]!}type RateLimit{allowUnlimitedRate:Boolean rateLimit:Int rateLimitDescription:String rateLimitDomain:String!rateLimitId:String!rateLimitPeriodMinutes:Int tenantId:String!}type Scope{scopeDescription:String scopeId:String!scopeName:String!tenantId:String!}type Tenant{allowUnlimitedRate:Boolean claimsSupported:[String!]!enabled:Boolean!tenantDescription:String tenantId:String!tenantName:String!}input TenantCreateInput{allowUnlimitedRate:Boolean claimsSupported:[String!]!enabled:Boolean!tenantDescription:String tenantName:String!}input TenantUpdateInput{allowUnlimitedRate:Boolean claimsSupported:[String!]!enabled:Boolean!tenantDescription:String tenantId:String!tenantName:String!}type User{address:String countryCode:String createdDate:String!email:String!firstName:String!lastName:String!middleName:String phoneNumber:String preferredLanguageCode:String tenantId:String!updatedDate:String userId:String!}type UserCredential{hashedPassword:String!salt:String!userId:String!}type UserCredentialHistory{dateCreated:String!hashedPassword:String!salt:String!userId:String!}type UserGroupRel{groupId:String!userId:String!}`);

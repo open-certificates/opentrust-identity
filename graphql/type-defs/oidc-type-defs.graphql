@@ -3,9 +3,9 @@ type Query {
     getTenants: [Tenant!]!
     getTenantById(tenantId: String!): Tenant
     getClients(tenantId: String!): [Client!]!
-    getClientById(clientId: String!): Client!
+    getClientById(clientId: String!): Client
     getUsers(tenantId: String!): [User!]!
-    getUserById(userId: String!): User!
+    getUserById(userId: String!): User
     getUserGroups(userId: String!): [Group!]!
     getLoginGroups: [LoginGroup!]!
     getLoginGroupById(loginGroupId: String!): LoginGroup!
@@ -14,43 +14,49 @@ type Query {
 }
 
 type Mutation {
-    createTenant(tenantInput: TenantInput!): Tenant
-    updateTenant(tenantInput: TenantInput!): Tenant
+    ## Tenants
+    createTenant(tenantInput: TenantCreateInput!): Tenant
+    updateTenant(tenantInput: TenantUpdateInput!): Tenant
 
-    createClient(clientInput: ClientInput!): Client
-    updateClient(clientInput: ClientInput!): Client
+    ## Clients
+    createClient(clientInput: ClientCreateInput!): Client
+    updateClient(clientInput: ClientUpdateInput!): Client
+
+    ## Users
+    
+
+    ## Groups
+
+
+    ## LoginGroups
+
+    
+    ## Keys
+
+
+    ## Scope
+
+
+    ## RateLimit
 }
 
 ########
-# 1.    clients -            List of clients that belong to this tenant. 
+# 1.    tenantId -           Write once, read only
 # 2.    enabled -            true | false
-# 3.    signingKeys -        Optional list of signing keys for this tenant. Default is system-wide signing keys
-# 4.    allowedScopeValues - ALL of the scopes that are available for the tenant. A subset of these are
+# 3.    allowedScopeValues - ALL of the scopes that are available for the tenant. A subset of these are
 #                            available to each of the clients
-# 5.    claimsSupported -    Of all of the OIDC claims, which does this tenant support
-# 6.    userAccounts -       All of the users who belong to this tenant
-# 7.    rateLimits -         Based on the type of resource, how many requests / 15 minutes to allow before returning a 429
-# 8.    allowUnlimitedRate - true | false. True will override any rate limit set in the rateLimits property
+# 4.    claimsSupported -    Of all of the OIDC claims, which does this tenant support
+# 5.    allowUnlimitedRate - true | false. True will override any rate limit set in the rateLimits property
 
 type Tenant {
     tenantId: String!
-    clients: [Client!]!
+    tenantName: String!
+    tenantDescription: String
     enabled: Boolean!
-    signingKeys: [Key!]!
-    allowedScopeValues: [String!]!
     claimsSupported: [String!]!
-    userAccounts: [User]
-    rateLimits: [RateLimit]
     allowUnlimitedRate: Boolean
 }
 
-input TenantInput {
-    tenantId: String
-    enabled: Boolean!
-    allowedScopeValues: [String!]!
-    claimsSupported: [String!]!
-    allowUnlimitedRate: Boolean
-}
 
 # 1.    tenantId -      Parent tenant (write once, read only)
 # 2.    clientId -      GUID
@@ -66,25 +72,18 @@ type Client {
     tenantId: String!
     clientId: String!
     clientSecret: String!
+    clientName: String!
+    clientDescription: String
     enabled: Boolean
-    scope: [String!]!
     redirectUris: [String!]
-    loginGroupIds: [String]
-    oidcEnabled: Boolean
+    oidcEnabled: Boolean!
+    pkceEnabled: Boolean!
 }
 
-type ClientInput {
-    tenantId: String!
-    clientId: String
-    clientSecret: String
-    enabled: Boolean
-    scope: [String!]!
-    redirectUris: [String!]
-    loginGroupIds: [String]
-    oidcEnabled: Boolean
-}
+
 
 type User {
+    tenantId: String!
     userId: String!
     email: String!
     firstName: String!
@@ -92,16 +91,22 @@ type User {
     middleName: String
     phoneNumber: String
     address: String
-    createdDate: String
+    createdDate: String!
     updatedDate: String
     countryCode: String
     preferredLanguageCode: String    
 }
 
 type LoginGroup {
+    tenantId: String!
     loginGroupId: String!
     loginGroupName: String!
     loginGroupDescription: String
+}
+
+type LoginGroupClientRel {
+    clientId: String!
+    loginGroupId: String!
 }
 
 type LoginGroupUserRel {
@@ -110,6 +115,7 @@ type LoginGroupUserRel {
 }
 
 type Group {
+    tenantId: String
     groupId: String!
     groupName: String!
 }
@@ -129,9 +135,11 @@ type UserCredentialHistory {
     userId: String!
     salt: String!
     hashedPassword: String!
+    dateCreated: String!
 }
 
 type Key {
+    tenantId: String!
     keyId: String!
     keyType: String!
     use: String!
@@ -141,6 +149,8 @@ type Key {
     exp: String!
 }
 
+
+
 # 1.    rateLimitId
 # 2.    tenantId         -  Required. Write once read many
 # 3.    rateLimitDomain  -  User-defined name of the context or other identifier which will be used by the application
@@ -149,11 +159,68 @@ type Key {
 # 5.    allowUnlimitedRate  -  true | false
 # 6.    rateLimit  -  Number of requests per period.
 type RateLimit {
-    rateLimitId: String!
     tenantId: String!
+    rateLimitId: String!
     rateLimitDomain: String!
     rateLimitDescription: String
     allowUnlimitedRate: Boolean
     rateLimit: Int
     rateLimitPeriodMinutes: Int
+}
+
+
+type Scope {
+    tenantId: String!
+    scopeId: String!
+    scopeName: String!
+    scopeDescription: String
+}
+
+type ClientScopeRel {
+    clientId: String!
+    scopeId: String!
+}
+
+
+
+############################################################################
+################ INPUT TYPES AND RESPONSES FOR MUTATATIONS #################
+############################################################################
+
+input TenantCreateInput {
+    tenantName: String!
+    tenantDescription: String
+    enabled: Boolean!
+    claimsSupported: [String!]!
+    allowUnlimitedRate: Boolean
+}
+
+input TenantUpdateInput {
+    tenantId: String!
+    tenantName: String!
+    tenantDescription: String
+    enabled: Boolean!
+    claimsSupported: [String!]!
+    allowUnlimitedRate: Boolean
+}
+
+input ClientCreateInput {
+    tenantId: String!
+    clientName: String!
+    clientDescription: String
+    enabled: Boolean
+    redirectUris: [String!]
+    oidcEnabled: Boolean
+    pkceEnabled: Boolean
+}
+
+input ClientUpdateInput {
+    tenantId: String!
+    clientId: String!
+    clientName: String!
+    clientDescription: String
+    enabled: Boolean
+    redirectUris: [String!]
+    oidcEnabled: Boolean
+    pkceEnabled: Boolean
 }

@@ -1,4 +1,4 @@
-import { Tenant, Client, Key, RateLimit } from "@/graphql/generated/graphql-types";
+import { Tenant, Client, Key, RateLimit, Group, LoginGroup, Scope } from "@/graphql/generated/graphql-types";
 import TenantDAO from "./tenant-dao";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -9,6 +9,8 @@ const dataDir = process.env.FS_BASED_DATA_DIR ?? path.join(__dirname);
 
 class FSBasedTenantDao extends TenantDAO {
 
+
+        
     public async getTenants(): Promise<Array<Tenant>> {
         const tenants: Array<Tenant> = JSON.parse(this.getFileContents(`${dataDir}/tenants.json`, "[]"));
         return Promise.resolve(tenants);        
@@ -22,18 +24,6 @@ class FSBasedTenantDao extends TenantDAO {
         return tenant === undefined ? Promise.resolve(null) : Promise.resolve(tenant);
     }
 
-    public async getClients(): Promise<Array<Client>> {
-        const clients: Array<Client> = JSON.parse(this.getFileContents(`${dataDir}/clients.json`, "[]"));
-        return Promise.resolve(clients);
-    }
-    public async getClientById(clientId: string): Promise<Client | null> {
-        const clients = await this.getClients();
-        const client: Client | undefined = clients.find(
-            (client: Client) => client.clientId === clientId
-        );
-        return client === undefined ? Promise.resolve(null) : Promise.resolve(client);
-
-    }
 
     public async getClientsByTenant(tenantId: string): Promise<Array<Client>> {
         const allClients = await this.getClients();
@@ -43,7 +33,7 @@ class FSBasedTenantDao extends TenantDAO {
         return Promise.resolve(clients)
     }
 
-    public async addTenant(tenant: Tenant): Promise<Tenant | null> {
+    public async createTenant(tenant: Tenant): Promise<Tenant | null> {
         const tenants: Array<Tenant> = await this.getTenants();
         tenant.tenantId = randomUUID().toString();
         tenants.push(tenant);
@@ -59,24 +49,36 @@ class FSBasedTenantDao extends TenantDAO {
         if(!tenantToUpdate){
             throw new GraphQLError("ERROR_TENANT_NOT_FOUND");
         }
+        tenantToUpdate.tenantName = tenant.tenantName;
+        tenantToUpdate.tenantDescription = tenant.tenantDescription;
         tenantToUpdate.allowUnlimitedRate = tenant.allowUnlimitedRate;
-        tenantToUpdate.allowedScopeValues = tenant.allowedScopeValues;
         tenantToUpdate.claimsSupported = tenant.claimsSupported;
         tenantToUpdate.enabled = tenant.enabled;
         writeFileSync(`${dataDir}/tenants.json`, JSON.stringify(tenants), {encoding: "utf-8"});
 
-        // Need to update all clients with changes to scope, that is, if some scope values have been removed.
-        // 1. get all clients by tenant id
-        // 2. check to make sure they don't contain any scope values that are absent in the tenant.
-        // 3. if they do, remove them and save.
         return Promise.resolve(tenant);
     }
 
     public async deleteTenant(tenantId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    public async addClient(tenantId: string, client: Client): Promise<Client> {
-        const tenant: Tenant | null = await this.getTenantById(tenantId);
+
+    public async getClients(): Promise<Array<Client>> {
+        const clients: Array<Client> = JSON.parse(this.getFileContents(`${dataDir}/clients.json`, "[]"));
+        return Promise.resolve(clients);
+    }
+
+    public async getClientById(clientId: string): Promise<Client | null> {
+        const clients = await this.getClients();
+        const client: Client | undefined = clients.find(
+            (client: Client) => client.clientId === clientId
+        );
+        return client === undefined ? Promise.resolve(null) : Promise.resolve(client);
+
+    }
+
+    public async createClient(client: Client): Promise<Client> {
+        const tenant: Tenant | null = await this.getTenantById(client.tenantId);
         if(!tenant){
             throw new GraphQLError("ERROR_TENANT_NOT_FOUND", {
 
@@ -84,30 +86,117 @@ class FSBasedTenantDao extends TenantDAO {
         }
 
         const clients = await this.getClients();
-        client.tenantId = tenantId;
         client.clientId = randomUUID().toString();
         clients.push(client);
-        writeFileSync(`${dataDir}/clients.json`, JSON.stringify(clients));
+        writeFileSync(`${dataDir}/clients.json`, JSON.stringify(clients), {encoding: "utf-8"});
         return Promise.resolve(client)
     }
 
     public async updateClient(client: Client): Promise<Client> {
-        throw new Error("Method not implemented.");
+        const clients: Array<Client> = await this.getClients();
+        const clientToUpdate = clients.find(
+            (c: Client) => {
+                return c.clientId === client.clientId
+            }
+        );
+        if(!clientToUpdate){
+            throw new GraphQLError("ERROR_CLIENT_NOT_FOUND")
+        }
+        clientToUpdate.clientDescription = client.clientDescription;
+        clientToUpdate.clientName = client.clientName;
+        clientToUpdate.enabled = client.enabled;
+        clientToUpdate.oidcEnabled = client.oidcEnabled;
+        clientToUpdate.pkceEnabled = client.pkceEnabled;
+        clientToUpdate.redirectUris = client.redirectUris;
+        writeFileSync(`${dataDir}/clients.json`, JSON.stringify(clients), {encoding: "utf-8"})
+
+        return Promise.resolve(client);
     }
 
     public async deleteClient(clientId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
-    public async getSigningKeys(): Promise<Array<Key>> {
+
+    public async getSigningKeysByTenant(tenantId: string): Promise<Array<Key>> {
+        throw new Error("Method not implemented.");
+    }
+    createSigningKey(key: Key): Promise<Key> {
+        throw new Error("Method not implemented.");
+    }
+    
+    getSigningKeyById(keyId: string): Promise<Key> {
+        throw new Error("Method not implemented.");
+    }
+    deleteSigningKey(keyId: String): Promise<Key> {
         throw new Error("Method not implemented.");
     }
 
-    public async createRateLimitDefinition(rateLimitDef: RateLimit): Promise<RateLimit> {
+ 
+    getRateLimitsByTenant(tenantId: string): Promise<Array<RateLimit>> {
+        throw new Error("Method not implemented.");
+    }
+    createRateLimit(rateLimit: RateLimit): Promise<RateLimit> {
+        throw new Error("Method not implemented.");
+    }
+    getRateLimitById(rateLimitId: string): Promise<RateLimit> {
+        throw new Error("Method not implemented.");
+    }
+    updateRateLimit(rateLimit: RateLimit): Promise<RateLimit> {
+        throw new Error("Method not implemented.");
+    }
+    deleteRateLimit(rateLimitId: string): Promise<RateLimit> {
         throw new Error("Method not implemented.");
     }
 
-    public async updateRateLimitDefinition(rateLimitDef: RateLimit): Promise<RateLimit> {
+
+    getScopeForTenant(tenantId: string): Promise<Array<Scope>> {
+        throw new Error("Method not implemented.");
+    }
+    getScopeById(scopeId: string): Promise<Scope> {
+        throw new Error("Method not implemented.");
+    }
+    createScope(scope: Scope): Promise<Scope> {
+        throw new Error("Method not implemented.");
+    }
+    updateScope(scope: Scope): Promise<Scope> {
+        throw new Error("Method not implemented.");
+    }
+    deleteScope(scopeId: string): Promise<Scope> {
+        throw new Error("Method not implemented.");
+    }
+
+
+    getLoginGroupsForTenant(tenantId: string): Promise<Array<LoginGroup>> {
+        throw new Error("Method not implemented.");
+    }
+    getLoginGroupById(loginGroupId: string): Promise<LoginGroup> {
+        throw new Error("Method not implemented.");
+    }
+    createLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
+        throw new Error("Method not implemented.");
+    }
+    updateLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
+        throw new Error("Method not implemented.");
+    }
+    deleteLoginGroup(loginGroupId: string): Promise<LoginGroup> {
+        throw new Error("Method not implemented.");
+    }
+
+
+    getGroupsForTenant(tenantId: string): Promise<Array<Group>> {
+        throw new Error("Method not implemented.");
+    }
+    getGroupById(groupId: string): Promise<Group> {
+        throw new Error("Method not implemented.");
+    }
+    createGroup(group: Group): Promise<Group> {
+        throw new Error("Method not implemented.");
+    }
+    updateGroup(group: Group): Promise<Group> {
+        throw new Error("Method not implemented.");
+    }
+    deleteGroup(groupId: string): Promise<Group> {
         throw new Error("Method not implemented.");
     }
 
