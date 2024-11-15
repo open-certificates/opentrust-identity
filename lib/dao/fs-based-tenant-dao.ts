@@ -16,6 +16,11 @@ const TENANT_RATE_LIMIT_REL_FILE = "tenant-rate-limit-rel.json";
 const SCOPE_FILE = "scope.json";
 const TENANT_SCOPE_REL_FILE = "tenant-scope-rel.json";
 const CLIENT_TENANT_SCOPE_REL_FILE = "client-tenant-scope-rel.json";
+const LOGIN_GROUP_FILE = "login-groups.json";
+const LOGIN_GROUP_CLIENT_REL_FILE = "login-groups-client-rel.json";
+const GROUP_FILE = "groups.json";
+
+
 class FSBasedTenantDao extends TenantDAO {
 
     public async getRootTenant(): Promise<Tenant> {
@@ -351,6 +356,7 @@ class FSBasedTenantDao extends TenantDAO {
         }
         return Promise.resolve(scopes);
     }
+
     public async getScopeById(scopeId: string): Promise<Scope | null> {
         const scopes: Array<Scope> = await this.getScope();
         const scope: Scope | undefined = scopes.find(
@@ -487,25 +493,93 @@ class FSBasedTenantDao extends TenantDAO {
 
     // LOGIN GROUPS METHODS
     public async getLoginGroups(tenantId?: string): Promise<Array<LoginGroup>> {
-        throw new Error("Method not implemented.");
-    }    
-    public async getLoginGroupById(loginGroupId: string): Promise<LoginGroup> {
-        throw new Error("Method not implemented.");
+        const loginGroups: Array<LoginGroup> = JSON.parse(this.getFileContents(`${dataDir}/${LOGIN_GROUP_FILE}`, "[]"));
+        if(tenantId){
+            return Promise.resolve(
+                loginGroups.filter(
+                    (l: LoginGroup) => l.tenantId === tenantId
+                )
+            )
+        }
+        return Promise.resolve(loginGroups);
     }
+    
+    public async getLoginGroupById(loginGroupId: string): Promise<LoginGroup | null> {
+        const loginGroups: Array<LoginGroup> = await this.getLoginGroups();
+        const loginGroup = loginGroups.find(
+            (l: LoginGroup) => l.loginGroupId === loginGroupId
+        )
+        return loginGroup === undefined ? Promise.resolve(null) : Promise.resolve(loginGroup);
+    }
+
     public async createLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
-        throw new Error("Method not implemented.");
+        const tenant: Tenant | null = await this.getTenantById(loginGroup.tenantId);
+        if(!tenant){
+            throw new GraphQLError("ERROR_TENANT_DOES_NOT_EXIST_FOR_LOGIN_GROUP");
+        }
+        const a: Array<LoginGroup> = await this.getLoginGroups();
+        loginGroup.loginGroupId = randomUUID().toString();
+        a.push(loginGroup);
+        writeFileSync(`${dataDir}/${LOGIN_GROUP_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
+        return Promise.resolve(loginGroup);
     }
+
     public async updateLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
-        throw new Error("Method not implemented.");
+        const a: Array<LoginGroup> = await this.getLoginGroups();
+        const existingLoginGroup = a.find(
+            (l: LoginGroup) => l.loginGroupId === loginGroup.loginGroupId
+        )
+        if(!existingLoginGroup){
+            throw new GraphQLError("ERROR_CANNOT_FIND_LOGIN_GROUP_FOR_UPDATE");
+        }
+        existingLoginGroup.loginGroupDescription = loginGroup.loginGroupDescription;
+        existingLoginGroup.loginGroupName = loginGroup.loginGroupName;
+        writeFileSync(`${dataDir}/${LOGIN_GROUP_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
+        return Promise.resolve(existingLoginGroup);
     }
+
     public async deleteLoginGroup(loginGroupId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+        let a: Array<LoginGroup> = await this.getLoginGroups();
+        a = a.filter(
+            (l: LoginGroup) => l.loginGroupId !== loginGroupId
+        )
+        writeFileSync(`${dataDir}/${LOGIN_GROUP_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
     }
+
     public async assignLoginGroupToClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel> {
-        throw new Error("Method not implemented.");
+        const client: Client | null = await this.getClientById(clientId);
+        if(!client){
+            throw new GraphQLError("ERROR_CLIENT_DOES_NOT_EXIST_FOR_LOGIN_GROUP_ASSIGNMENT");
+        }
+        const loginGroup = await this.getLoginGroupById(loginGroupId);
+        if(!loginGroup){
+            throw new GraphQLError("ERROR_LOGIN_GROUP_DOES_NOT_EXIST_FOR_CLIENT_ASSIGNMENT");
+        }
+        // Do the tenants match?
+        if(loginGroup.tenantId !== client.tenantId){
+            throw new GraphQLError("ERROR_CANNOT_ASSIGN_LOGIN_GROUP_TO_CLIENT")
+        }
+        const rels: Array<LoginGroupClientRel> = JSON.parse(this.getFileContents(`${dataDir}/${LOGIN_GROUP_CLIENT_REL_FILE}`));
+        const existingRel = rels.find(
+            (r: LoginGroupClientRel) => r.clientId === clientId && r.loginGroupId === loginGroupId
+        )
+        if(existingRel){
+            return Promise.resolve(existingRel);
+        }
+        const newRel: LoginGroupClientRel = {
+            loginGroupId: loginGroupId,
+            clientId: clientId
+        }
+        rels.push(newRel);
+        writeFileSync(`${dataDir}/${LOGIN_GROUP_CLIENT_REL_FILE}`, JSON.stringify(rels), {encoding: "utf-8"});
+        return Promise.resolve(newRel);
     }
     public async removeLoginGroupFromClient(loginGroupId: string, clientId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+        let rels: Array<LoginGroupClientRel> = JSON.parse(this.getFileContents(`${dataDir}/${LOGIN_GROUP_CLIENT_REL_FILE}`));
+        rels = rels.filter(
+            (r: LoginGroupClientRel) => !(r.clientId === clientId && r.loginGroupId === loginGroupId)
+        )
+        writeFileSync(`${dataDir}/${LOGIN_GROUP_CLIENT_REL_FILE}`, JSON.stringify(rels), {encoding: "utf-8"});
     }
 
 
