@@ -7,10 +7,19 @@ import { GraphQLError } from "graphql";
 
 const dataDir = process.env.FS_BASED_DATA_DIR ?? path.join(__dirname);
 
+const ROOT_TENANT_FILE = "root-tenant.json";
+const TENANT_FILE = "tenants.json";
+const CLIENT_FILE = "clients.json";
+const KEY_FILE = "keys.json";
+const RATE_LIMIT_FILE = "rate-limits.json";
+const TENANT_RATE_LIMIT_REL_FILE = "tenant-rate-limit-rel.json";
+const SCOPE_FILE = "scope.json";
+const TENANT_SCOPE_REL_FILE = "tenant-scope-rel.json";
+const CLIENT_TENANT_SCOPE_REL_FILE = "client-tenant-scope-rel.json";
 class FSBasedTenantDao extends TenantDAO {
 
     public async getRootTenant(): Promise<Tenant> {
-        const tenant: Tenant = JSON.parse(this.getFileContents(`${dataDir}/root-tenant.json`, "{}"));
+        const tenant: Tenant = JSON.parse(this.getFileContents(`${dataDir}/${ROOT_TENANT_FILE}`, "{}"));
         if(!tenant?.tenantId){
             throw new GraphQLError("ERROR_ROOT_TENANT_DOES_NOT_EXIST");
         }
@@ -18,7 +27,7 @@ class FSBasedTenantDao extends TenantDAO {
     }
     public async createRootTenant(tenant: Tenant): Promise<Tenant> {
         tenant.tenantId = randomUUID().toString();
-        writeFileSync(`${dataDir}/root-tenant.json`, JSON.stringify(tenant), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${ROOT_TENANT_FILE}`, JSON.stringify(tenant), {encoding: "utf-8"});
         return Promise.resolve(tenant);
         
     }
@@ -37,13 +46,13 @@ class FSBasedTenantDao extends TenantDAO {
         rootTenant.tenantDescription = tenant.tenantDescription;
         rootTenant.tenantName = tenant.tenantName;
         
-        writeFileSync(`${dataDir}/root-tenant.json`, JSON.stringify(rootTenant), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${ROOT_TENANT_FILE}`, JSON.stringify(rootTenant), {encoding: "utf-8"});
         return Promise.resolve(rootTenant);       
 
     }
         
     public async getTenants(): Promise<Array<Tenant>> {
-        const tenants: Array<Tenant> = JSON.parse(this.getFileContents(`${dataDir}/tenants.json`, "[]"));
+        const tenants: Array<Tenant> = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_FILE}`, "[]"));
         return Promise.resolve(tenants);        
     }
 
@@ -68,7 +77,7 @@ class FSBasedTenantDao extends TenantDAO {
         const tenants: Array<Tenant> = await this.getTenants();
         tenant.tenantId = randomUUID().toString();
         tenants.push(tenant);
-        writeFileSync(`${dataDir}/tenants.json`, JSON.stringify(tenants), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${TENANT_FILE}`, JSON.stringify(tenants), {encoding: "utf-8"});
         return Promise.resolve(tenant);
     }
 
@@ -86,7 +95,7 @@ class FSBasedTenantDao extends TenantDAO {
         tenantToUpdate.claimsSupported = tenant.claimsSupported;
         tenantToUpdate.enabled = tenant.enabled;
 
-        writeFileSync(`${dataDir}/tenants.json`, JSON.stringify(tenants), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${TENANT_FILE}`, JSON.stringify(tenants), {encoding: "utf-8"});
 
         return Promise.resolve(tenant);
     }
@@ -110,7 +119,7 @@ class FSBasedTenantDao extends TenantDAO {
     }
 
     public async getClients(tenantId?: string): Promise<Array<Client>> {
-        let clients: Array<Client> = JSON.parse(this.getFileContents(`${dataDir}/clients.json`, "[]"));
+        let clients: Array<Client> = JSON.parse(this.getFileContents(`${dataDir}/${CLIENT_FILE}`, "[]"));
         if(tenantId){
             clients = clients.filter(
                 (c: Client) => c.tenantId === tenantId
@@ -139,7 +148,7 @@ class FSBasedTenantDao extends TenantDAO {
         const clients = await this.getClients();
         client.clientId = randomUUID().toString();
         clients.push(client);
-        writeFileSync(`${dataDir}/clients.json`, JSON.stringify(clients), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${CLIENT_FILE}`, JSON.stringify(clients), {encoding: "utf-8"});
         return Promise.resolve(client)
     }
 
@@ -159,7 +168,7 @@ class FSBasedTenantDao extends TenantDAO {
         clientToUpdate.oidcEnabled = client.oidcEnabled;
         clientToUpdate.pkceEnabled = client.pkceEnabled;
         clientToUpdate.redirectUris = client.redirectUris;
-        writeFileSync(`${dataDir}/clients.json`, JSON.stringify(clients), {encoding: "utf-8"})
+        writeFileSync(`${dataDir}/${CLIENT_FILE}`, JSON.stringify(clients), {encoding: "utf-8"})
 
         return Promise.resolve(client);
     }
@@ -174,7 +183,7 @@ class FSBasedTenantDao extends TenantDAO {
 
     // SIGNING KEYS METHODS
     public async getSigningKeys(tenantId?: string): Promise<Array<Key>> {
-        let keys: Array<Key> = JSON.parse(this.getFileContents(`${dataDir}/keys.json`, "[]"));
+        let keys: Array<Key> = JSON.parse(this.getFileContents(`${dataDir}/${KEY_FILE}`, "[]"));
         if(tenantId){
             keys = keys.filter(
                 (k: Key) => k.tenantId === tenantId
@@ -194,7 +203,7 @@ class FSBasedTenantDao extends TenantDAO {
         const keys = await this.getSigningKeys();
         key.keyId = randomUUID().toString();
         keys.push(key);
-        writeFileSync(`${dataDir}/keys.json`, JSON.stringify(keys), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${KEY_FILE}`, JSON.stringify(keys), {encoding: "utf-8"});
         return Promise.resolve(key);
     }    
 
@@ -211,13 +220,13 @@ class FSBasedTenantDao extends TenantDAO {
         const a: Array<Key> = keys.filter(
             (k: Key) => k.keyId !== keyId
         );
-        writeFileSync(`${dataDir}/keys.json`, JSON.stringify(a), {encoding: "utf-8"})
+        writeFileSync(`${dataDir}/${KEY_FILE}`, JSON.stringify(a), {encoding: "utf-8"})
         
     }
 
     // RATE LIMIT METHODS
     public async getRateLimits(tenantId?: string): Promise<Array<RateLimit>> {
-        let rateLimits: Array<RateLimit> = JSON.parse(this.getFileContents(`${dataDir}/rate-limits.json`, "[]"));
+        let rateLimits: Array<RateLimit> = JSON.parse(this.getFileContents(`${dataDir}/${RATE_LIMIT_FILE}`, "[]"));
         if(tenantId){
             const tenantRateLimts: Array<TenantRateLimitRel> = await this.getRateLimitTenantRel(tenantId);
             rateLimits = rateLimits.filter(
@@ -231,7 +240,7 @@ class FSBasedTenantDao extends TenantDAO {
         const rateLimits: Array<RateLimit> = await this.getRateLimits();
         rateLimit.rateLimitId = randomUUID().toString();
         rateLimits.push(rateLimit);
-        writeFileSync(`${dataDir}/rate-limits.json`, JSON.stringify(rateLimits), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${RATE_LIMIT_FILE}`, JSON.stringify(rateLimits), {encoding: "utf-8"});
         return Promise.resolve(rateLimit);
     }
 
@@ -251,109 +260,275 @@ class FSBasedTenantDao extends TenantDAO {
         }
         rateLimitToUpdate.rateLimitDescription = rateLimit.rateLimitDescription;
         rateLimitToUpdate.rateLimitDomain = rateLimit.rateLimitDomain;
-        writeFileSync(`${dataDir}/rate-limits.json`, JSON.stringify(rateLimits), {encoding: "utf-8"});
+        writeFileSync(`${dataDir}/${RATE_LIMIT_FILE}`, JSON.stringify(rateLimits), {encoding: "utf-8"});
         return Promise.resolve(rateLimit);
     }
 
-    public async deleteRateLimit(rateLimitId: string): Promise<RateLimit> {
+    public async deleteRateLimit(rateLimitId: string): Promise<void> {
         // delete TenantRateLimitRel
         // delete RateLimit
         throw new Error("Method not implemented.");
     } 
     
+        
     public async getRateLimitTenantRel(tenantId: string): Promise<Array<TenantRateLimitRel>> {
-        let tenantRateLimitRels = JSON.parse(this.getFileContents(`${dataDir}/tenant-rate-limit-rel.json`, "[]"));
+        let tenantRateLimitRels = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, "[]"));
         tenantRateLimitRels = tenantRateLimitRels.filter(
             (t: TenantRateLimitRel) => t.tenantId === tenantId
         )
         return Promise.resolve(tenantRateLimitRels);
     }
 
-    assignRateLimitToTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, rateLimit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel> {
-        throw new Error("Method not implemented.");
-    }
-    updateRateLimitForTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, rateLimit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel> {
-        throw new Error("Method not implemented.");
-    }
-    removeRateLimitFromTenant(tenantId: string, rateLimitId: string): Promise<TenantRateLimitRel> {
-        throw new Error("Method not implemented.");
+    
+    public async assignRateLimitToTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, limit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel> {
+        const tenant = await this.getTenantById(tenantId);
+        if(!tenant){
+            throw new GraphQLError("ERROR_CANNOT_FIND_TENANT_TO_ASSIGN_RATE_LIMIT");
+        }
+        const rateLimit = await this.getRateLimitById(rateLimitId);
+        if(!rateLimit){
+            throw new GraphQLError("ERROR_CANNOT_FIND_RATE_LIMIT_TO_ASSIGN_TO_TENANT");
+        }
+        let existingRels: Array<TenantRateLimitRel> = await this.getRateLimitTenantRel(tenantId);
+        const existingRateLimitRel = existingRels.find(
+            (r: TenantRateLimitRel) => r.rateLimitId === rateLimit.rateLimitId
+        )
+        if(existingRateLimitRel){
+            throw new GraphQLError("ERROR_TENENT_IS_ALREADY_ASSIGNED_RATE_LIMIT");
+        }
+        const a: Array<TenantRateLimitRel> = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, "[]"));
+        const rel: TenantRateLimitRel = {
+            tenantId: tenantId,
+            rateLimitId: rateLimitId,
+            rateLimit: limit < 0 ? 15 : limit > 1000000 ? 15 : limit,
+            rateLimitPeriodMinutes: rateLimitPeriodMinutes,
+            allowUnlimitedRate: allowUnlimited
+        };
+        a.push(rel);
+        writeFileSync(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
+        return Promise.resolve(rel);        
     }
 
+    public async updateRateLimitForTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, limit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel> {
+        const tenantRateLimitRels: Array<TenantRateLimitRel> = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, "[]"))
+        const existingRel: TenantRateLimitRel | undefined = tenantRateLimitRels.find(
+            (r: TenantRateLimitRel) => r.rateLimitId === rateLimitId && r.tenantId === tenantId
+        );
+        if(!existingRel){
+            throw new GraphQLError("ERROR_CANNOT_FIND_EXISTING_TENANT_RATE_LIMIT_REL_TO_UPDATE");
+        }
+        existingRel.allowUnlimitedRate = allowUnlimited;
+        existingRel.rateLimit = limit < 0 ? 15 : limit > 1000000 ? 15 : limit;
+        existingRel.rateLimitPeriodMinutes = rateLimitPeriodMinutes > 480 ? 480 : rateLimitPeriodMinutes < 5 ? 480 : rateLimitPeriodMinutes;
+        writeFileSync(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, JSON.stringify(tenantRateLimitRels), {encoding: "utf-8"});
+        return Promise.resolve(existingRel);
+    }
 
+    public async removeRateLimitFromTenant(tenantId: string, rateLimitId: string): Promise<void> {
+        let tenantRateLimitRels: Array<TenantRateLimitRel> = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, "[]"));
+        const existingRel: TenantRateLimitRel | undefined = tenantRateLimitRels.find(
+            (r: TenantRateLimitRel) => r.rateLimitId === rateLimitId && r.tenantId === tenantId
+        );
+        if(existingRel){
+            tenantRateLimitRels = tenantRateLimitRels.filter(
+                (rel: TenantRateLimitRel) => !(rel.rateLimitId === rateLimitId && rel.tenantId === tenantId)
+            )
+            writeFileSync(`${dataDir}/${TENANT_RATE_LIMIT_REL_FILE}`, JSON.stringify(tenantRateLimitRels), {encoding: "utf-8"});
+        }
+    }
+
+    
     // SCOPE METHODS
-    getScope(tenantId?: string): Promise<Array<Scope>> {
-        throw new Error("Method not implemented.");
+    public async getScope(tenantId?: string): Promise<Array<Scope>> {
+        let scopes: Array<Scope> = JSON.parse(this.getFileContents(`${dataDir}/${SCOPE_FILE}`, "[]"));
+        if(tenantId){
+            const rels: Array<TenantScopeRel> = await this.getTenantScopeRel(tenantId);
+            scopes = scopes.filter(
+                (s: Scope) => rels.find(
+                    (r: TenantScopeRel) => r.tenantId === tenantId
+                )
+            )
+        }
+        return Promise.resolve(scopes);
     }
-    getScopeById(scopeId: string): Promise<Scope> {
-        throw new Error("Method not implemented.");
+    public async getScopeById(scopeId: string): Promise<Scope | null> {
+        const scopes: Array<Scope> = await this.getScope();
+        const scope: Scope | undefined = scopes.find(
+            (s: Scope) => s.scopeId === scopeId
+        )
+        return scope === undefined ? Promise.resolve(null) : Promise.resolve(scope);
     }
-    createScope(scope: Scope): Promise<Scope> {
-        throw new Error("Method not implemented.");
+
+    public async createScope(scope: Scope): Promise<Scope> {
+        const scopes: Array<Scope> = await this.getScope();
+        scope.scopeId = randomUUID().toString();
+        scopes.push(scope);
+        writeFileSync(`${dataDir}/${SCOPE_FILE}`, JSON.stringify(scopes), {encoding: "utf-8"});
+        return Promise.resolve(scope);
     }
-    updateScope(scope: Scope): Promise<Scope> {
-        throw new Error("Method not implemented.");
+
+    public async updateScope(scope: Scope): Promise<Scope> {
+        const scopes: Array<Scope> = await this.getScope();
+        const existingScope = scopes.find(
+            (s: Scope) => s.scopeId === scope.scopeId
+        )
+        if(!existingScope){
+            throw new GraphQLError("ERROR_SCOPE_NOT_FOUND");
+        }
+        existingScope.scopeDescription = scope.scopeDescription;
+        existingScope.scopeName = scope.scopeName;
+        writeFileSync(`${dataDir}/${SCOPE_FILE}`, JSON.stringify(scopes), {encoding: "utf-8"});
+        return Promise.resolve(existingScope);
     }
-    deleteScope(scopeId: string): Promise<Scope> {
-        throw new Error("Method not implemented.");
-    }    
-    assignScopeToTenant(tenantId: string, scopeId: string): Promise<TenantScopeRel> {
-        throw new Error("Method not implemented.");
+
+    public async deleteScope(scopeId: string): Promise<void> {
+        let scopes: Array<Scope> = await this.getScope();
+        scopes = scopes.filter(
+            (s: Scope) => s.scopeId !== scopeId
+        )
+        writeFileSync(`${dataDir}/${SCOPE_FILE}`, JSON.stringify(scopes), {encoding: "utf-8"});
     }
-    removeScopeFromTenant(tenantId: string, scopeId: string): Promise<TenantScopeRel> {
-        throw new Error("Method not implemented.");
+        
+
+    protected async getTenantScopeRel(tenantId?: String): Promise<Array<TenantScopeRel>> {
+        const tenantScopeRels: Array<TenantScopeRel> = JSON.parse(this.getFileContents(`${dataDir}/${TENANT_SCOPE_REL_FILE}`, "[]"));
+        if(tenantId){
+            return Promise.resolve(
+                tenantScopeRels.filter(
+                    (t: TenantScopeRel) => t.tenantId === tenantId
+                )
+            );
+        }
+        else {
+            return Promise.resolve(tenantScopeRels);
+        }
     }
-    assignScopeToClient(tenantId: string, clientId: string, scopeId: string): Promise<ClientTenantScopeRel> {
-        throw new Error("Method not implemented.");
+    
+    public async assignScopeToTenant(tenantId: string, scopeId: string): Promise<TenantScopeRel> {
+        const tenant: Tenant | null = await this.getTenantById(tenantId);
+        if(!tenant){
+            throw new GraphQLError("ERROR_CANNOT_FIND_TENANT_FOR_SCOPE_ASSIGNMENT");
+        }
+        const scope: Scope | null = await this.getScopeById(scopeId);
+        if(!scope){
+            throw new GraphQLError("ERROR_CANNOT_FIND_SCOPE_TO_ASSIGN_TO_TENANT");
+        }
+        const a: Array<TenantScopeRel> = await this.getTenantScopeRel();
+        const existingRel = a.find(
+            (r: TenantScopeRel) => r.tenantId === tenantId && r.scopeId === scopeId
+        )
+        if(existingRel){
+            return Promise.resolve(existingRel);
+        }
+        const rel: TenantScopeRel = {
+            tenantId: tenantId,
+            scopeId: scopeId
+        }
+        a.push(rel);
+        writeFileSync(`${dataDir}/${TENANT_SCOPE_REL_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
+        return Promise.resolve(rel);
+
     }
-    removeScopeFromClient(tenantId: string, clientId: string, scopeId: string): Promise<ClientTenantScopeRel> {
-        throw new Error("Method not implemented.");
+
+    public async removeScopeFromTenant(tenantId: string, scopeId: string): Promise<void> {
+        let a: Array<TenantScopeRel> = await this.getTenantScopeRel();
+        a = a.filter(
+            (rel: TenantScopeRel) => !(rel.tenantId === tenantId && rel.scopeId === scopeId)
+        );
+        writeFileSync(`${dataDir}/${TENANT_SCOPE_REL_FILE}`, JSON.stringify(a), {encoding: "utf-8"});
+    }
+
+    public async assignScopeToClient(tenantId: string, clientId: string, scopeId: string): Promise<ClientTenantScopeRel> {
+        const client: Client | null = await this.getClientById(clientId);
+        if(!client){
+            throw new GraphQLError("ERROR_CLIENT_NOT_FOUND_FOR_SCOPE_ASSIGNMENT");
+        }
+        if(client.tenantId !== tenantId){
+            throw new GraphQLError("ERROR_CLIENT_DOES_NOT_BELONG_TO_TENANT");
+        }
+        const scope: Scope | null = await this.getScopeById(scopeId);
+        if(!scope){
+            throw new GraphQLError("ERROR_SCOPE_ID_NOT_FOUND_FOR_CLIENT_ASSIGNMENT");
+        }
+        // the scope needs to be assigned to the tenant overall, in order to be assigned to
+        // the client
+        const tenantScopes: Array<TenantScopeRel> = await this.getTenantScopeRel(tenantId);
+        const rel = tenantScopes.find(
+            (t: TenantScopeRel) => t.scopeId === scopeId
+        )
+        if(!rel){
+            throw new GraphQLError("ERROR_SCOPE_IS_NOT_ASSIGNED_TO_THE_TENANT");
+        }
+        const clientTenantScopeRels: Array<ClientTenantScopeRel> = this.getFileContents(`${dataDir}/${CLIENT_TENANT_SCOPE_REL_FILE}`, "[]");
+        const existingRel = clientTenantScopeRels.find(
+            (r: ClientTenantScopeRel) => r.tenantId === tenantId && r.clientId === clientId && r.scopeId === scopeId
+        )
+        if(existingRel){
+            return Promise.resolve(existingRel);
+        }
+        const newRel: ClientTenantScopeRel = {
+            tenantId: tenantId,
+            clientId: clientId,
+            scopeId: scopeId
+        }
+        clientTenantScopeRels.push(newRel);
+        writeFileSync(`${dataDir}/${CLIENT_TENANT_SCOPE_REL_FILE}`, JSON.stringify(clientTenantScopeRels), {encoding: "utf-8"});
+        return Promise.resolve(newRel);
+
+    }
+    public async removeScopeFromClient(tenantId: string, clientId: string, scopeId: string): Promise<void> {
+        let clientTenantScopeRels: Array<ClientTenantScopeRel> = this.getFileContents(`${dataDir}/${CLIENT_TENANT_SCOPE_REL_FILE}`, "[]");
+        clientTenantScopeRels = clientTenantScopeRels.filter(
+            (r: ClientTenantScopeRel) => !(r.tenantId === tenantId && r.clientId === clientId && r.scopeId === scopeId)
+        )
+        writeFileSync(`${dataDir}/${CLIENT_TENANT_SCOPE_REL_FILE}`, JSON.stringify(clientTenantScopeRels), {encoding: "utf-8"});
     }
 
 
     // LOGIN GROUPS METHODS
-    getLoginGroups(tenantId?: string): Promise<Array<LoginGroup>> {
+    public async getLoginGroups(tenantId?: string): Promise<Array<LoginGroup>> {
         throw new Error("Method not implemented.");
     }    
-    getLoginGroupById(loginGroupId: string): Promise<LoginGroup> {
+    public async getLoginGroupById(loginGroupId: string): Promise<LoginGroup> {
         throw new Error("Method not implemented.");
     }
-    createLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
+    public async createLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
         throw new Error("Method not implemented.");
     }
-    updateLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
+    public async updateLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup> {
         throw new Error("Method not implemented.");
     }
-    deleteLoginGroup(loginGroupId: string): Promise<LoginGroup> {
+    public async deleteLoginGroup(loginGroupId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    assignLoginGroupToClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel> {
+    public async assignLoginGroupToClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel> {
         throw new Error("Method not implemented.");
     }
-    removeLoginGroupFromClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel> {
+    public async removeLoginGroupFromClient(loginGroupId: string, clientId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
 
     // GROUPS METHODS
-    getGroups(tenantId?: string): Promise<Array<Group>> {
+    public async getGroups(tenantId?: string): Promise<Array<Group>> {
         throw new Error("Method not implemented.");
     }
-    getGroupById(groupId: string): Promise<Group> {
+    public async getGroupById(groupId: string): Promise<Group> {
         throw new Error("Method not implemented.");
     }
-    createGroup(group: Group): Promise<Group> {
+    public async createGroup(group: Group): Promise<Group> {
         throw new Error("Method not implemented.");
     }
-    updateGroup(group: Group): Promise<Group> {
+    public async updateGroup(group: Group): Promise<Group> {
         throw new Error("Method not implemented.");
     }
-    deleteGroup(groupId: string): Promise<Group> {
+    public async deleteGroup(groupId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }    
-    addUserToGroup(userId: string, groupId: string): Promise<UserGroupRel> {
+    public async addUserToGroup(userId: string, groupId: string): Promise<UserGroupRel> {
         throw new Error("Method not implemented.");
     }
-    removeUserFromGroup(userId: string, groupId: string): Promise<UserGroupRel> {
+    public async removeUserFromGroup(userId: string, groupId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
 

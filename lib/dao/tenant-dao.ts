@@ -52,15 +52,15 @@ abstract class TenantDao {
 
     abstract updateRateLimit(rateLimit: RateLimit): Promise<RateLimit>;
 
-    abstract deleteRateLimit(rateLimitId: string): Promise<RateLimit>;
+    abstract deleteRateLimit(rateLimitId: string): Promise<void>;
 
     abstract getRateLimitTenantRel(tenantId: string): Promise<Array<TenantRateLimitRel>>;
 
-    abstract assignRateLimitToTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, rateLimit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel>;
+    abstract assignRateLimitToTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, limit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel>;
 
-    abstract updateRateLimitForTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, rateLimit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel>;
+    abstract updateRateLimitForTenant(tenantId: string, rateLimitId: string, allowUnlimited: boolean, limit: number, rateLimitPeriodMinutes: number): Promise<TenantRateLimitRel>;
 
-    abstract removeRateLimitFromTenant(tenantId: string, rateLimitId: string): Promise<TenantRateLimitRel>;
+    abstract removeRateLimitFromTenant(tenantId: string, rateLimitId: string): Promise<void>;
 
 
     /////////////////   SCOPE   ///////////////////////
@@ -72,15 +72,15 @@ abstract class TenantDao {
 
     abstract updateScope(scope: Scope): Promise<Scope>;
 
-    abstract deleteScope(scopeId: string): Promise<Scope>;
+    abstract deleteScope(scopeId: string): Promise<void>;
 
     abstract assignScopeToTenant(tenantId: string, scopeId: string): Promise<TenantScopeRel>;
 
-    abstract removeScopeFromTenant(tenantId: string, scopeId: string): Promise<TenantScopeRel>;
+    abstract removeScopeFromTenant(tenantId: string, scopeId: string): Promise<void>;
 
     abstract assignScopeToClient(tenantId: string, clientId: string, scopeId: string): Promise<ClientTenantScopeRel>;
 
-    abstract removeScopeFromClient(tenantId: string, clientId: string, scopeId: string): Promise<ClientTenantScopeRel>;
+    abstract removeScopeFromClient(tenantId: string, clientId: string, scopeId: string): Promise<void>;
 
 
     /////////////////   LOGIN GROUPS   ///////////////////////
@@ -92,11 +92,11 @@ abstract class TenantDao {
 
     abstract updateLoginGroup(loginGroup: LoginGroup): Promise<LoginGroup>;
 
-    abstract deleteLoginGroup(loginGroupId: string): Promise<LoginGroup>;
+    abstract deleteLoginGroup(loginGroupId: string): Promise<void>;
 
     abstract assignLoginGroupToClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel>;
 
-    abstract removeLoginGroupFromClient(loginGroupId: string, clientId: string): Promise<LoginGroupClientRel>;
+    abstract removeLoginGroupFromClient(loginGroupId: string, clientId: string): Promise<void>;
 
 
     /////////////////   GROUPS   ///////////////////////
@@ -108,11 +108,11 @@ abstract class TenantDao {
 
     abstract updateGroup(group: Group): Promise<Group>;
 
-    abstract deleteGroup(groupId: string): Promise<Group>;
+    abstract deleteGroup(groupId: string): Promise<void>;
 
     abstract addUserToGroup(userId: string, groupId: string): Promise<UserGroupRel>;
 
-    abstract removeUserFromGroup(userId: string, groupId: string): Promise<UserGroupRel>;
+    abstract removeUserFromGroup(userId: string, groupId: string): Promise<void>;
    
 
 }
