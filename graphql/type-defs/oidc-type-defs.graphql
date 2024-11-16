@@ -1,43 +1,88 @@
 
 type Query {
+    ## Tenants
+    getRootTenant: Tenant!
     getTenants: [Tenant!]!
     getTenantById(tenantId: String!): Tenant
+
+    ## Clients
     getClients(tenantId: String!): [Client!]!
     getClientById(clientId: String!): Client
+
+    ## Users
     getUsers(tenantId: String!): [User!]!
     getUserById(userId: String!): User
-    getUserGroups(userId: String!): [Group!]!
-    getLoginGroups: [LoginGroup!]!
+    
+    
+    ## Keys
+    getSigningKeys(tenantId: String): [Key!]!
+    getSigningKeyById(signingKeyId: String!): Key
+
+    ## RateLimit
+    getRateLimits(tenantId: String): [RateLimit!]!
+    getRateLimitById(rateLimitId: String!): RateLimit
+
+
+    ## Scope
+    getScope(tenantId: String): [Scope!]!
+    getScopeById(scopeId: String!): Scope
+
+
+    ## LoginGroups
+    getLoginGroups(tenantId: String): [LoginGroup!]!
     getLoginGroupById(loginGroupId: String!): LoginGroup!
+    
+
+    ## Groups
     getGroups: [Group!]!
-    getRateLimits(tenantId: String!): [RateLimit!]!
+    getUserGroups(userId: String!): [Group!]!
+    
 }
 
 type Mutation {
     ## Tenants
+    createRootTenant(tenantInput: TenantCreateInput!): Tenant
+    updateRootTenant(tenantInput: TenantUpdateInput!): Tenant
+    
     createTenant(tenantInput: TenantCreateInput!): Tenant
     updateTenant(tenantInput: TenantUpdateInput!): Tenant
+    deleteTenant(tenantId: String!): String
 
     ## Clients
     createClient(clientInput: ClientCreateInput!): Client
     updateClient(clientInput: ClientUpdateInput!): Client
+    ## Just returns the ID after deletion is complete
+    deleteClient(clientId: String!): String
 
     ## Users
-    
-
-    ## Groups
-
-
-    ## LoginGroups
 
     
     ## Keys
-
-
-    ## Scope
-
+    createSigningKey(keyInput: KeyCreateInput!): Key
+    updateSigningKey(keyInput: KeyUpdateInput!): Key
 
     ## RateLimit
+    createRateLimit(rateLimitInput: RateLimitCreateInput!): RateLimit
+    updateRateLimit(rateLimitInput: RateLimitUpdateInput!): RateLimit
+    deleteRateLimit(rateLimitId: String!): String
+    assignRateLimitToTenant(tenantId: String!, rateLimitId: String!, allowUnlimited: Boolean, limit: Int, rateLimitPeriodMinutes: Int): TenantRateLimitRel
+    updateRateLimitForTenant(tenantId: String!, rateLimitId: String!, allowUnlimited: Boolean, limit: Int, rateLimitPeriodMinutes: Int): TenantRateLimitRel
+    removeRateLimitFromTenant(tenantId: String!, rateLimitId: String!): String
+
+    ## Scope
+    createScope(scopeInput: ScopeCreateInput!): Scope
+    updateScope(scopeInput: ScopeUpdateInput!): Scope
+    deleteScope(scopeId: String!): String
+    assignScopeToTenant(tenantId: String!, scopeId: String!): TenantScopeRel
+    removeScopeFromTenant(tenantId: String!, scopeId: String!): String
+    assignScopeToClient(tenantId: String!, clientId: String!, scopeId: String!): ClientTenantScopeRel
+    removeScopeFromClient(tenantId: String!, clientId: String!, scopeId: String!): String
+
+    ## LoginGroups
+
+
+    ## Groups
+
 }
 
 ########
@@ -179,12 +224,9 @@ type Key {
 
 
 # 1.    rateLimitId
-# 2.    tenantId         -  Required. Write once read many
-# 3.    rateLimitDomain  -  User-defined name of the context or other identifier which will be used by the application
+# 2.    rateLimitDomain  -  User-defined name of the context or other identifier which will be used by the application
 #                           to make rate limiting decisions. If you need just one then it can be global.
-# 4.    rateLimitDescription  -  
-# 5.    allowUnlimitedRate  -  true | false
-# 6.    rateLimit  -  Number of requests per period.
+# 3.    rateLimitDescription  -  
 type RateLimit {
     rateLimitId: String!
     rateLimitDomain: String!
@@ -239,7 +281,7 @@ input TenantCreateInput {
     allowUnlimitedRate: Boolean
     delegateAuthentication: Boolean!
     delegatedOIDCClientDef: OIDCClientDefinitionInput
-    emailDomains: [String]
+    emailDomains: [String!]
 }
 
 input TenantUpdateInput {
@@ -251,7 +293,7 @@ input TenantUpdateInput {
     allowUnlimitedRate: Boolean
     delegateAuthentication: Boolean!
     delegatedOIDCClientDef: OIDCClientDefinitionInput
-    emailDomains: [String]
+    emailDomains: [String!]
 }
 
 input ClientCreateInput {
@@ -275,4 +317,47 @@ input ClientUpdateInput {
     oidcEnabled: Boolean
     pkceEnabled: Boolean
     clientType: ClientType!
+}
+
+input KeyCreateInput {
+    tenantId: String!
+    keyType: String!
+    use: String!
+    n: String!
+    e: String!
+    x5c: [String!]!
+    exp: String!
+}
+
+
+input KeyUpdateInput {
+    tenantId: String!
+    keyId: String!
+    keyType: String!
+    use: String!
+    n: String!
+    e: String!
+    x5c: [String!]!
+    exp: String!
+}
+
+input RateLimitCreateInput {
+    rateLimitDomain: String!
+    rateLimitDescription: String
+}
+
+input RateLimitUpdateInput {
+    rateLimitId: String!
+    rateLimitDomain: String!
+    rateLimitDescription: String
+}
+input ScopeCreateInput {
+    scopeName: String!
+    scopeDescription: String
+}
+
+input ScopeUpdateInput {
+    scopeId: String!
+    scopeName: String!
+    scopeDescription: String
 }

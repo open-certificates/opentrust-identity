@@ -167,13 +167,15 @@ class FSBasedTenantDao extends TenantDAO {
         if(!clientToUpdate){
             throw new GraphQLError("ERROR_CLIENT_NOT_FOUND")
         }
+        // tenantId is a write-only-read-only property, no updates regardless of what the client has sent
+        // same for client secret
         clientToUpdate.clientDescription = client.clientDescription;
         clientToUpdate.clientName = client.clientName;
         clientToUpdate.enabled = client.enabled;
         clientToUpdate.oidcEnabled = client.oidcEnabled;
         clientToUpdate.pkceEnabled = client.pkceEnabled;
         clientToUpdate.redirectUris = client.redirectUris;
-        writeFileSync(`${dataDir}/${CLIENT_FILE}`, JSON.stringify(clients), {encoding: "utf-8"})
+        writeFileSync(`${dataDir}/${CLIENT_FILE}`, JSON.stringify(clients), {encoding: "utf-8"});
 
         return Promise.resolve(client);
     }
@@ -585,20 +587,57 @@ class FSBasedTenantDao extends TenantDAO {
 
     // GROUPS METHODS
     public async getGroups(tenantId?: string): Promise<Array<Group>> {
-        throw new Error("Method not implemented.");
+        const groups: Array<Group> = JSON.parse(this.getFileContents(`${dataDir}/${GROUP_FILE}`, "[]"));
+        if(tenantId){
+            return Promise.resolve(
+                groups.filter(
+                    (g: Group) => g.tenantId === tenantId
+                )
+            )
+        }
+        return Promise.resolve(groups);
     }
+
     public async getGroupById(groupId: string): Promise<Group> {
-        throw new Error("Method not implemented.");
+        const groups: Array<Group> = await this.getGroups();
+        const group: Group | undefined = groups.find(
+            (g: Group) => g.groupId === groupId
+        )
+        if(!group){
+            throw new GraphQLError("ERROR_GROUP_NOT_FOUND");
+        }
+        return Promise.resolve(group);        
     }
+
     public async createGroup(group: Group): Promise<Group> {
-        throw new Error("Method not implemented.");
+        const tenant: Tenant | null = await this.getTenantById(group.tenantId);
+        if(!tenant){
+            throw new GraphQLError("ERROR_TENANT_NOT_FOUND_FOR_GROUP_CREATION");
+        }
+        group.groupId = randomUUID().toString();
+        const groups: Array<Group> = await this.getGroups();
+        groups.push(group);
+        writeFileSync(`${dataDir}/${GROUP_FILE}`, JSON.stringify(groups), {encoding: "utf-8"});
+        return Promise.resolve(group);
     }
+
     public async updateGroup(group: Group): Promise<Group> {
-        throw new Error("Method not implemented.");
+        const groups: Array<Group> = await this.getGroups();
+        const existingGroup: Group | undefined = groups.find(
+            (g: Group) => g.groupId === group.groupId
+        )
+        if(!existingGroup){
+            throw new GraphQLError("ERROR_GROUP_NOT_FOUND");
+        }
+
+        existingGroup.groupName = group.groupName;
+        writeFileSync(`${dataDir}/${GROUP_FILE}`, JSON.stringify(groups), {encoding: "utf-8"});
+        return Promise.resolve(existingGroup);  
     }
     public async deleteGroup(groupId: string): Promise<void> {
         throw new Error("Method not implemented.");
-    }    
+    }
+
     public async addUserToGroup(userId: string, groupId: string): Promise<UserGroupRel> {
         throw new Error("Method not implemented.");
     }
