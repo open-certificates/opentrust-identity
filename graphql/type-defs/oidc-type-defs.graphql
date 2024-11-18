@@ -179,11 +179,14 @@ type DomainOIDCClientDefinitionRel {
 }
 
 
+# 1.    domain is just the domain part of the email
 type User {
     tenantId: String!
     userId: String!
     externalOIDCProviderSubjectId: String
     email: String!
+    emailVerified: Boolean!
+    domain: String!
     firstName: String!
     lastName: String!
     middleName: String
