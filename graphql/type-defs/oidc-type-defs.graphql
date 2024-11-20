@@ -36,6 +36,11 @@ type Query {
     ## Groups
     getGroups: [Group!]!
     getUserGroups(userId: String!): [Group!]!
+
+
+    ## External OIDC Providers
+    getExternalOIDCProviders(tenantId: String): [ExternalOIDCProvider!]!
+    getExternalOIDCProviderById(externalOIDCProviderId: String!): ExternalOIDCProvider
     
 }
 
@@ -59,7 +64,7 @@ type Mutation {
     
     ## Keys
     createSigningKey(keyInput: KeyCreateInput!): Key
-    updateSigningKey(keyInput: KeyUpdateInput!): Key
+    # updateSigningKey(keyInput: KeyUpdateInput!): Key
     deleteSigningKey(keyId: String!): String!
 
     ## RateLimit
@@ -92,6 +97,13 @@ type Mutation {
     deleteGroup(groupId: String!): String!
     addUserToGroup(userId: String!, groupId: String!): UserGroupRel
     removeUserFromGroup(userId: String!, groupId: String!): String
+
+    ## External OIDC Providers
+    createExternalOIDCProvider(oidcProviderInput: ExternalOIDCProviderCreateInput!): ExternalOIDCProvider
+    updateExternalOIDCProvider(oidcProviderInput: ExternalOIDCProviderUpdateInput!): ExternalOIDCProvider
+    assignExternalOIDCProviderToTenant(externalOIDCProviderId: String!, tenantId: String!, domains: [String!]!): [ExternalOIDCProviderTenantDomainRel!]!
+    removeExternalOIDCProviderFromTenant(externalOIDCProviderId: String!, tenantId: String!, domains: [String!]!): [ExternalOIDCProviderTenantDomainRel!]!
+    deleteExternalOIDCProvider(externalOIDCProviderId: String!): String!
 
 }
 
