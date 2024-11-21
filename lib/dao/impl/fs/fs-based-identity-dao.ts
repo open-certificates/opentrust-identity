@@ -1,7 +1,14 @@
-import { User } from "@/graphql/generated/graphql-types";
+import { Group, LoginGroup, User } from "@/graphql/generated/graphql-types";
 import IdentityDao from "../../identity-dao";
 
 class FSBasedIdentityDAO extends IdentityDao {
+    
+    getUserGroups(userId: string): Promise<Array<Group>> {
+        throw new Error("Method not implemented.");
+    }
+    getUserLoginGroups(userId: string): Promise<Array<LoginGroup>> {
+        throw new Error("Method not implemented.");
+    }
     
     getUsers(clientId: string): Promise<Array<User>> {
         throw new Error("Method not implemented.");

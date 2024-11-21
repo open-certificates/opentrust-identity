@@ -1,8 +1,10 @@
 import ClientService from "@/lib/service/client-service";
 import TenantService from "@/lib/service/tenant-service";
-import { Resolvers, QueryResolvers, MutationResolvers, Tenant, Client, Key, Scope } from "../generated/graphql-types";
+import { Resolvers, QueryResolvers, MutationResolvers, Tenant, Client, Key, Scope, LoginGroup, Group } from "../generated/graphql-types";
 import SigningKeysService from "@/lib/service/keys-service";
 import ScopeService from "@/lib/service/scope-service";
+import LoginGroupService from "@/lib/service/login-group-service";
+import GroupService from "@/lib/service/group-service";
 
 
 const resolvers: Resolvers = {
@@ -38,12 +40,27 @@ const resolvers: Resolvers = {
         getScopeById: (_: any, { scopeId }, oidcContext) => {
             const scopeService: ScopeService = new ScopeService(oidcContext);
             return scopeService.getScopeById(scopeId);
+        },
+        getLoginGroups: (_: any, __: any, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            return loginGroupService.getLoginGroups();
+        },
+        getLoginGroupById: (_: any, { loginGroupId }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            return loginGroupService.getLoginGroupById(loginGroupId);
+        },
+        getGroups: (_: any, __: any, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            return groupService.getGroups();
+        },
+        getGroupById: (_: any, { groupId }, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            return groupService.getGroupById(groupId);
         }
     },
     Mutation: {
         createTenant: async (_: any, { tenantInput }, oidcContext) => {
             const tenantService: TenantService = new TenantService(oidcContext);
-            console.log('auth token is: ' + oidcContext.authToken);
             let tenant: Tenant = {
                 claimsSupported: tenantInput.claimsSupported,
                 enabled: true,
@@ -179,9 +196,81 @@ const resolvers: Resolvers = {
             const scopeService: ScopeService = new ScopeService(oidcContext);
             await scopeService.removeScopeFromClient(tenantId, clientId, scopeId);
             return scopeId;
+        },
+        createLoginGroup: async(_: any, { loginGroupInput }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            const loginGroup: LoginGroup = {
+                loginGroupId: "",
+                loginGroupName: loginGroupInput.loginGroupName,
+                loginGroupDescription: loginGroupInput.loginGroupDescription,
+                tenantId: loginGroupInput.tenantId
+            }
+            await loginGroupService.createLoginGroup(loginGroup);
+            return loginGroup;
+        },
+        updateLoginGroup: async(_: any, { loginGroupInput }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            const loginGroup: LoginGroup = {
+                loginGroupId: loginGroupInput.loginGroupId,
+                loginGroupName: loginGroupInput.loginGroupName,
+                loginGroupDescription: loginGroupInput.loginGroupDescription,
+                tenantId: loginGroupInput.tenantId
+            }
+            await loginGroupService.updateLoginGroup(loginGroup);
+            return loginGroup;
+        },
+        deleteLoginGroup: async(_: any, { loginGroupId }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            await loginGroupService.deleteLoginGroup(loginGroupId);
+            return loginGroupId;
+        },
+        assignLoginGroupToClient: async(_: any, { loginGroupId, clientId }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            const res = await loginGroupService.assignLoginGroupToClient(loginGroupId, clientId);
+            return res;
+        },
+        removeLoginGroupFromClient: async(_: any, { loginGroupId, clientId }, oidcContext) => {
+            const loginGroupService: LoginGroupService = new LoginGroupService(oidcContext);
+            await loginGroupService.removeLoginGroupFromClient(loginGroupId, clientId);
+            return loginGroupId;
+        },
+        createGroup: async(_: any, { groupInput }, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            const group: Group = {
+                default: groupInput.default,
+                groupId: "",
+                groupName: groupInput.groupName,
+                tenantId: groupInput.tenantId
+            };
+            await groupService.createGroup(group);
+            return group;
+        },
+        updateGroup: async(_: any, { groupInput }, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            const group: Group = {
+                default: groupInput.default,
+                groupId: groupInput.groupId,
+                groupName: groupInput.groupName,
+                tenantId: groupInput.tenantId
+            };
+            await groupService.updateGroup(group);
+            return group;
+        },
+        deleteGroup: async(_: any, { groupId }, oidcContext ) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            await groupService.deleteGroup(groupId);
+            return groupId;
+        },
+        addUserToGroup: async(_: any, { groupId, userId }, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            const res = await groupService.addUserToGroup(userId, groupId);
+            return res;
+        },
+        removeUserFromGroup: async(_: any, { groupId, userId }, oidcContext) => {
+            const groupService: GroupService = new GroupService(oidcContext);
+            await groupService.removeUserFromGroup(userId, groupId);
+            return userId;
         }
-
-        
     }
 }
 

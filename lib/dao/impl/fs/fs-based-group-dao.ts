@@ -9,7 +9,6 @@ import { getFileContents } from "@/utils/dao-utils";
 const dataDir = process.env.FS_BASED_DATA_DIR ?? path.join(__dirname);
 
 class FSBasedGroupDao extends GroupDao {
-
     
     public async getGroups(tenantId?: string): Promise<Array<Group>> {
         const groups: Array<Group> = JSON.parse(getFileContents(`${dataDir}/${GROUP_FILE}`, "[]"));

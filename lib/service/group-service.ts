@@ -40,12 +40,10 @@ class GroupService {
     }
 
     public async updateGroup(group: Group): Promise<Group> {
-        const groups: Array<Group> = await this.getGroups();
         const existingGroup: Group | null = await groupDao.getGroupById(group.groupId);
         if(!existingGroup){
             throw new GraphQLError("ERROR_GROUP_NOT_FOUND");
         }
-
         existingGroup.groupName = group.groupName;
         existingGroup.default = group.default;
         return groupDao.updateGroup(group);

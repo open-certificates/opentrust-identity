@@ -1,19 +1,14 @@
 import LoginGroupsDao from "../../login-group-dao";
-import { Tenant, Client, Group, LoginGroup,LoginGroupClientRel, UserGroupRel, ClientType, LoginGroupUserRel } from "@/graphql/generated/graphql-types";
-import TenantDAO from "../../tenant-dao";
+import { LoginGroup,LoginGroupClientRel, LoginGroupUserRel } from "@/graphql/generated/graphql-types";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { randomUUID } from 'crypto'; 
 import { GraphQLError } from "graphql";
-import { GROUP_FILE, LOGIN_GROUP_CLIENT_REL_FILE, LOGIN_GROUP_FILE, ROOT_TENANT_FILE, TENANT_FILE } from "@/utils/consts";
+import { LOGIN_GROUP_CLIENT_REL_FILE, LOGIN_GROUP_FILE} from "@/utils/consts";
 import { getFileContents } from "@/utils/dao-utils";
 
 const dataDir = process.env.FS_BASED_DATA_DIR ?? path.join(__dirname);
-
-
 class FSBasedLoginGroupDao extends LoginGroupsDao {
 
-    // LOGIN GROUPS METHODS
     public async getLoginGroups(tenantId?: string): Promise<Array<LoginGroup>> {
         const loginGroups: Array<LoginGroup> = JSON.parse(getFileContents(`${dataDir}/${LOGIN_GROUP_FILE}`, "[]"));
         if (tenantId) {

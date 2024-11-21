@@ -35,10 +35,11 @@ type Query {
 
     ## LoginGroups
     getLoginGroups(tenantId: String): [LoginGroup!]!
-    getLoginGroupById(loginGroupId: String!): LoginGroup!
+    getLoginGroupById(loginGroupId: String!): LoginGroup
 
     ## Groups
     getGroups: [Group!]!
+    getGroupById(groupId: String!): Group
     getUserGroups(userId: String!): [Group!]!
 
     ## External OIDC Providers

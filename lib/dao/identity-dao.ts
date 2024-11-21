@@ -1,8 +1,12 @@
-import { User } from "@/graphql/generated/graphql-types";
+import { Group, LoginGroup, User } from "@/graphql/generated/graphql-types";
 
 abstract class IdentityDao {
 
     abstract getUsers(clientId: string): Promise<Array<User>>;
+
+    abstract getUserGroups(userId: string): Promise<Array<Group>>;
+
+    abstract getUserLoginGroups(userId: string): Promise<Array<LoginGroup>>;
 
     abstract loginUser(username: string, password: string): Promise<User>;
 
