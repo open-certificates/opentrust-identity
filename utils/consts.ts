@@ -8,14 +8,7 @@ export const DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS = 600; // 10 minutes
 export const DEFAULT_END_USER_TOKEN_TTL_SECONDS = 3600; // 1 hour
 export const MAX_END_USER_TOKEN_TTL_SECONDS = 43200; // 12 hours
 export const MIN_END_USER_TOKEN_TTL_SECONDS = 900; // 15 minutes
-export const GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
-export const GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
-export const GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
-export const GRANT_TYPES_SUPPORTED: Array<string> = [
-    GRANT_TYPE_AUTHORIZATION_CODE,
-    GRANT_TYPE_REFRESH_TOKEN,
-    GRANT_TYPE_CLIENT_CREDENTIALS
-]
+
 
 
 // ************************************************************************** //
@@ -48,7 +41,7 @@ export const CLIENT_AUTH_HISTORY_FILE = "client-auth-history.json";
 
 // ************************************************************************** //
 // 
-//                    OIDC-SPECIFIC SCOPE CONSTANTS
+//                    OIDC-SPECIFIC VALUES
 // 
 // ************************************************************************** //
 // These are just the scope values defined by the OIDC specification. They are
@@ -64,6 +57,28 @@ export const ALL_OIDC_SUPPORTED_SCOPE_VALUES = [
     OIDC_PROFILE_SCOPE,
     OIDC_OFFLINE_ACCESS_SCOPE
 ];
+export const GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
+export const GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
+export const GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
+// For future development work, support device code auth grants. Will need a /code endpoint for this
+export const GRANT_TYPE_DEVICE_CODE = "urn:ietf:params:oauth:grant-type:device_code";
+export const GRANT_TYPES_SUPPORTED: Array<string> = [
+    GRANT_TYPE_AUTHORIZATION_CODE,
+    GRANT_TYPE_REFRESH_TOKEN,
+    GRANT_TYPE_CLIENT_CREDENTIALS
+];
+export const CLIENT_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+// Standard token error codes
+export const OIDC_TOKEN_ERROR_INVALID_REQUEST = "invalid_request";
+export const OIDC_TOKEN_ERROR_INVALID_CLIENT = "invalid_client";
+export const OIDC_TOKEN_ERROR_INVALID_GRANT = "invalid_grant";
+export const OIDC_TOKEN_ERROR_UNAUTHORIZED_CLIENT = "unauthorized_client";
+export const OIDC_TOKEN_ERROR_UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
+export const OIDC_TOKEN_ERROR_INVALID_SCOPE = "invalid_scope";
+
+export type OidcTokenErrorType = typeof OIDC_TOKEN_ERROR_INVALID_REQUEST | typeof OIDC_TOKEN_ERROR_INVALID_CLIENT |
+    typeof OIDC_TOKEN_ERROR_INVALID_GRANT | typeof OIDC_TOKEN_ERROR_UNAUTHORIZED_CLIENT | typeof OIDC_TOKEN_ERROR_UNSUPPORTED_GRANT_TYPE |
+    typeof OIDC_TOKEN_ERROR_INVALID_SCOPE;
 
 
 

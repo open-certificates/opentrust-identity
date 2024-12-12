@@ -1,4 +1,4 @@
-import { Tenant, Client, DelegatedAuthenticationConstraint, FederatedOidcProvider, FederatedOidcAuthorizationRel, PreAuthenticationState, ClientType } from '@/graphql/generated/graphql-types';
+import { Tenant, Client, DelegatedAuthenticationConstraint, FederatedOidcProvider, FederatedOidcAuthorizationRel, PreAuthenticationState, ClientType, FederatedAuthenticationConstraint } from '@/graphql/generated/graphql-types';
 import AuthDao from '@/lib/dao/auth-dao';
 import ClientDao from '@/lib/dao/client-dao';
 import FederatedOIDCProviderDao from '@/lib/dao/federated-oidc-provider-dao';
@@ -179,7 +179,12 @@ export default async function handler(
 		res.end();
 		return;
 	}
-	if (tenant.delegatedAuthenticationConstraint === DelegatedAuthenticationConstraint.Exclusive) {
+	if (tenant.federatedAuthenticationConstraint === FederatedAuthenticationConstraint.Exclusive) {
+
+        // TODO
+        // 1.   Need to look up all of the federated IdPs associated to this tenant.
+        // 2.   If there is just one, then redirect immediately.
+        // 3.   Otherwise, show the login page.
 		if (!tenant.federatedOIDCProviderId) {
 			res.status(302).setHeader("location", `/authorize/login?tenant_id=${tenantId}&client_id=${clientId}&state=${oidcState}&error=unauthorized_client&error_message=ERROR_TENANT_INCORRECTLY_CONFIGURED_FOR_EXTERNAL_OIDC_PROVIDER_INVALID_PROVIDER_ID&redirect_uri=${redirectUri}&scope=${oidcScope}&response_type=${responseType}&response_mode=${responseMode}`);
 			res.end();
