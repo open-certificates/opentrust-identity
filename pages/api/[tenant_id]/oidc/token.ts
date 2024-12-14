@@ -245,7 +245,7 @@ async function handleAuthorizationCodeGrant(tokenData: TokenData, res: NextApiRe
             credentialIsValid = await clientAuthValidationService.validateClientAuthCredentials(tokenData.clientId, tokenData.clientSecret || "");
         }
         else {
-            credentialIsValid = await clientAuthValidationService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
+            credentialIsValid = await jwtService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
         }
         if(!credentialIsValid){
             const error: OIDCErrorResponseBody = {
@@ -391,7 +391,7 @@ async function handleRefreshTokenGrant(tokenData: TokenData, res: NextApiRespons
             credentialIsValid = await clientAuthValidationService.validateClientAuthCredentials(tokenData.clientId, tokenData.clientSecret || "");
         }
         else {
-            credentialIsValid = await clientAuthValidationService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
+            credentialIsValid = await jwtService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
         }
         if(!credentialIsValid){
             const error: OIDCErrorResponseBody = {
@@ -508,7 +508,7 @@ async function handleClientCredentialsGrant(tokenData: TokenData, res: NextApiRe
         credentialIsValid = await clientAuthValidationService.validateClientAuthCredentials(tokenData.clientId, tokenData.clientSecret || "");
     }
     else {
-        credentialIsValid = await clientAuthValidationService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
+        credentialIsValid = await jwtService.validateClientAuthJwt(tokenData.clientAssertion || "", tokenData.clientId, tokenData.tenantId);
     }
     if(!credentialIsValid){
         const error: OIDCErrorResponseBody = {

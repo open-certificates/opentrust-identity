@@ -1,20 +1,21 @@
-import { User, Tenant, Client, SigningKey, NameOrder } from "@/graphql/generated/graphql-types";
+import { User, Tenant, Client, SigningKey, NameOrder, ClientAuthHistory } from "@/graphql/generated/graphql-types";
 import { getTenantDaoImpl, getClientDaoImpl, getIdentityDaoImpl, getSigningKeysDaoImpl, generateRandomToken } from "@/utils/dao-utils";
 import ClientDao from "@/lib/dao/client-dao";
 import TenantDao from "@/lib/dao/tenant-dao";
 import IdentityDao from "@/lib/dao/identity-dao";
 import { OIDCTokenResponse } from "@/lib/models/token-response";
-import { JWTPayload, SignJWT, JWK } from "jose";
+import { JWTPayload, SignJWT, JWTVerifyResult, jwtVerify, decodeJwt, decodeProtectedHeader, ProtectedHeaderParameters } from "jose";
 import SigningKeysDao from "../dao/keys-dao";
-import { TokenType } from "../models/principal";
-import { randomUUID, createPrivateKey, PrivateKeyInput, KeyObject} from "node:crypto"; 
+import { OIDCPrincipal, TokenType } from "../models/principal";
+import { randomUUID, createPrivateKey, PrivateKeyInput, KeyObject, createSecretKey, createPublicKey, PublicKeyInput } from "node:crypto"; 
 import NodeCache from "node-cache";
-import { DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS } from "@/utils/consts";
+import { CLIENT_SECRET_ENCODING, DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS } from "@/utils/consts";
 
-
+const SIGNING_KEY_ARRAY_CACHE_KEY = "SIGNING_KEY_ARRAY_CACHE_KEY"
 interface CachedSigningKeyData {
     signingKey: SigningKey,
-    keyObject: KeyObject
+    privateKeyObject: KeyObject
+    publicKeyObject: KeyObject
 };
 
 const SigningKeyCache = new NodeCache(
@@ -93,12 +94,11 @@ class JwtService {
         }
         
         const s: string = await new SignJWT(principal)
-            .setJti("")
             .setProtectedHeader({
                 alg: "RS256",
                 kid: cachedSigningKeyData.signingKey.keyId
             })
-            .sign(cachedSigningKeyData.keyObject);
+            .sign(cachedSigningKeyData.privateKeyObject);
         
         const oidcTokenResponse: OIDCTokenResponse = {
             access_token: s,
@@ -154,12 +154,11 @@ class JwtService {
         }
         
         const s: string = await new SignJWT(principal)
-            .setJti("")
             .setProtectedHeader({
                 alg: "RS256",
                 kid: cachedSigningKeyData.signingKey.keyId
             })
-            .sign(cachedSigningKeyData.keyObject);
+            .sign(cachedSigningKeyData.privateKeyObject);
         
         const oidcTokenResponse: OIDCTokenResponse = {
             access_token: s,
@@ -173,6 +172,182 @@ class JwtService {
     }
 
 
+    /**
+     * The only signing method allowed is HMAC SHA 256, not private keys. It also does
+     * not support encrypted claims.
+     * 
+     * @param jwt 
+     * @param clientId
+     * @param tenantId
+     * @returns 
+     */
+    public async validateClientAuthJwt(jwt: string, clientId: string, tenantId: string): Promise<boolean> {
+        
+        // From the specification here: https://openid.net/specs/openid-connect-core-1_0.html section #9
+        // First, let's find the client ID, which should be in the sub attribute and iss attribte
+        // and should match
+        const payload: JWTPayload = decodeJwt(jwt);
+        if(!payload.iss || !payload.sub){
+            return Promise.resolve(false);
+        }
+        if(payload.iss !== payload.sub){
+            return Promise.resolve(false);
+        }
+        if(payload.sub !== clientId){
+            return Promise.resolve(false);
+        }
+
+        const aud: string | string[] | undefined = payload.aud;
+        if(!aud){
+            return Promise.resolve(false);
+        }
+        // audience should match this authorization server's token endpoint, which in 
+        // this case includes the tenant id
+        const a = `${AUTH_DOMAIN}/api/${tenantId}/oidc/token`;
+        if(!Array.isArray(aud)){
+            if(a !== aud){
+                return Promise.resolve(false);
+            }
+        }
+        else{
+            if(a !== aud[0]){
+                return Promise.resolve(false);
+            }
+        }
+        
+        // Check the expiration of the token
+        if(!payload.exp){
+            return Promise.resolve(false);
+        }
+        const nowInSeconds = Date.now() / 1000;
+        if(payload.exp < nowInSeconds){
+            return Promise.resolve(false);
+        }
+
+        // Does the client exist and does it belong to the tenant and is it
+        // enabled?
+        const client: Client | null = await clientDao.getClientById(payload.sub);
+        if(!client){
+            return Promise.resolve(false);
+        }
+        if(client.tenantId !== tenantId || client.enabled !== true){
+            return Promise.resolve(false);
+        }
+        const tenant: Tenant | null = await tenantDao.getTenantById(client.tenantId);
+        if(!tenant || tenant.enabled !== true){
+            return Promise.resolve(false);
+        }
+
+        // jti should be used only once, per the spec, to avoid replay attacks. But once 
+        // the token is expired, should we remove it or face a continuous increase in
+        // client auth history? Since we're also checking for expiration, it probably
+        // is okay to remove once the token is expired
+        const jti: string | undefined = payload.jti;
+        if(!jti){
+            return Promise.resolve(false);
+        }
+        const clientAuthHistory: ClientAuthHistory | null = await clientDao.getClientAuthHistoryByJti(jti);
+        if(clientAuthHistory){
+            return Promise.resolve(false);
+        }
+        // even if the token itself is not signed correctly, save the history of this jti to prevent replay
+        clientDao.saveClientAuthHistory({jti, clientId: payload.sub, tenantId, expiresAtSeconds: payload.exp});
+        const secretKey: KeyObject = createSecretKey(client.clientSecret, CLIENT_SECRET_ENCODING);
+        
+        try{
+            const p: JWTVerifyResult = await jwtVerify(jwt, secretKey, {});
+            if(!p.payload){
+                return Promise.resolve(false);
+            }
+            else{
+                return Promise.resolve(true);
+            }
+        }
+        catch(error){
+            return Promise.resolve(false)
+        }
+    }
+
+    /**
+     * 
+     * @param jwt 
+     */
+    public async validateJwt(jwt: string): Promise<OIDCPrincipal | null> {
+
+        const protectedHeader: ProtectedHeaderParameters = decodeProtectedHeader(jwt);
+        const keyId = protectedHeader.kid;
+        if(!keyId){
+            return Promise.resolve(null);
+        }
+        if(!protectedHeader.alg || protectedHeader.alg !== "RS256"){
+            return Promise.resolve(null);
+        }
+        const payload: JWTPayload = decodeJwt(jwt);
+        const nowInSeconds = Date.now() / 1000;
+        if(!payload.exp || payload.exp < nowInSeconds){
+            return Promise.resolve(null);
+        }
+
+        const cachedSigningKeyData: CachedSigningKeyData | null = await this.getCachedSigningKeyById(keyId);
+        if(!cachedSigningKeyData){
+            return Promise.resolve(null);
+        }
+
+        try {
+            const p: JWTVerifyResult = await jwtVerify(jwt, cachedSigningKeyData.publicKeyObject)
+            if(!p.payload){
+                return Promise.resolve(null);
+            }
+            else{
+                return Promise.resolve(p.payload as unknown as OIDCPrincipal);
+            }
+        }
+        catch(error){
+            return Promise.resolve(null);
+        }
+
+        
+    }
+
+
+    /**
+     * 
+     * @param keyId 
+     * @returns 
+     */
+    protected async getCachedSigningKeyById(keyId: string): Promise<CachedSigningKeyData | null>{
+        if(SigningKeyCache.has(keyId)){
+            return Promise.resolve(SigningKeyCache.get(keyId) as CachedSigningKeyData);
+        }
+        else{
+            const key: SigningKey | null = await signingKeysDao.getSigningKeyById(keyId);
+            if(!key){
+                return Promise.resolve(null);
+            }
+            const privateKeyInput: PrivateKeyInput = {
+                key: key.privateKey,
+                encoding: "utf-8",
+                format: "pem",
+                passphrase: key.password || undefined
+            };                    
+            const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
+
+            const publicKeyInput: PublicKeyInput = {
+                key: key.certificate,
+                encoding: "utf-8",
+                format: "pem"
+            };
+            const publicKeyObject = createPublicKey(publicKeyInput);
+
+            const cachedData: CachedSigningKeyData = {
+                signingKey: key,
+                privateKeyObject: privateKeyObject,
+                publicKeyObject: publicKeyObject
+            };
+            SigningKeyCache.set(keyId, cachedData);
+            return Promise.resolve(cachedData);
+        }
+    }
 
     /**
      * 
@@ -180,8 +355,8 @@ class JwtService {
      */
     protected async getCachedSigningKey(): Promise<CachedSigningKeyData | null> {
         
-        if(SigningKeyCache.has("SIGNING_KEY_ARRAY")){
-            const a: Array<CachedSigningKeyData> = SigningKeyCache.get("SIGNING_KEY_ARRAY") as Array<CachedSigningKeyData>;
+        if(SigningKeyCache.has(SIGNING_KEY_ARRAY_CACHE_KEY)){
+            const a: Array<CachedSigningKeyData> = SigningKeyCache.get(SIGNING_KEY_ARRAY_CACHE_KEY) as Array<CachedSigningKeyData>;
             if(a.length > 0){
                 return Promise.resolve(a[0]);
             }
@@ -195,7 +370,7 @@ class JwtService {
             signingKeys = signingKeys.filter(
                 (k: SigningKey) => k.expiresAtMs > now
             );
-
+            
             let cachedArray = signingKeys.map(
                 (key: SigningKey) => {
                     const privateKeyInput: PrivateKeyInput = {
@@ -203,12 +378,20 @@ class JwtService {
                         encoding: "utf-8",
                         format: "pem",
                         passphrase: key.password || undefined
+                    };                    
+                    const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
+
+                    const publicKeyInput: PublicKeyInput = {
+                        key: key.certificate,
+                        encoding: "utf-8",
+                        format: "pem"
                     };
-                    
-                    const keyObject: KeyObject = createPrivateKey(privateKeyInput);
+                    const publicKeyObject = createPublicKey(publicKeyInput);
+
                     const cachedData: CachedSigningKeyData = {
                         signingKey: key,
-                        keyObject: keyObject
+                        privateKeyObject: privateKeyObject,
+                        publicKeyObject: publicKeyObject
                     };
                     return cachedData;
                 }
@@ -218,8 +401,9 @@ class JwtService {
                 (a: CachedSigningKeyData, b: CachedSigningKeyData) => {
                     return b.signingKey.expiresAtMs - a.signingKey.expiresAtMs;
                 }
-            )
-            SigningKeyCache.set("SIGNING_KEY_ARRAY", cachedArray);
+            );
+
+            SigningKeyCache.set(SIGNING_KEY_ARRAY_CACHE_KEY, cachedArray);
             if(cachedArray.length > 0){
                 return Promise.resolve(cachedArray[0]);
             }
