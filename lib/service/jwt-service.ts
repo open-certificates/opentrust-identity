@@ -9,7 +9,7 @@ import SigningKeysDao from "../dao/keys-dao";
 import { OIDCPrincipal, TokenType } from "../models/principal";
 import { randomUUID, createPrivateKey, PrivateKeyInput, KeyObject, createSecretKey, createPublicKey, PublicKeyInput } from "node:crypto"; 
 import NodeCache from "node-cache";
-import { CLIENT_SECRET_ENCODING, DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS } from "@/utils/consts";
+import { CLIENT_SECRET_ENCODING, DEFAULT_END_USER_TOKEN_TTL_SECONDS, DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS } from "@/utils/consts";
 
 const SIGNING_KEY_ARRAY_CACHE_KEY = "SIGNING_KEY_ARRAY_CACHE_KEY"
 interface CachedSigningKeyData {
@@ -64,7 +64,7 @@ class JwtService {
             iss: `${AUTH_DOMAIN}/api/${tenantId}`,
             aud: client.clientId,
             iat: now / 1000,
-            exp: ( now / 1000 ) + client.userTokenTTLSeconds,
+            exp: client.userTokenTTLSeconds ? ( now / 1000 ) + client.userTokenTTLSeconds : ( now / 1000 ) + DEFAULT_END_USER_TOKEN_TTL_SECONDS,
             at_hash: "",
             name: user.nameOrder === NameOrder.WesternNameOrder ? `${user.firstName} ${user.lastName}` : `${user.lastName} ${user.firstName}`,
             given_name: user.firstName,
@@ -104,7 +104,7 @@ class JwtService {
             access_token: s,
             token_type: "Bearer",
             refresh_token: client.maxRefreshTokenCount && client.maxRefreshTokenCount > 0 ? generateRandomToken(32) : null,
-            expires_in: ( now / 1000 ) + client.userTokenTTLSeconds,
+            expires_in: client.userTokenTTLSeconds ? ( now / 1000 ) + client.userTokenTTLSeconds : ( now / 1000 ) + DEFAULT_END_USER_TOKEN_TTL_SECONDS,
             id_token: s
         }
         
@@ -124,7 +124,7 @@ class JwtService {
             iss: `${AUTH_DOMAIN}/api/${tenant.tenantId}`,
             aud: client.clientId,
             iat: now / 1000,
-            exp: ( now / 1000 ) + DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS,
+            exp: client.clientTokenTTLSeconds ? ( now / 1000 ) + client.clientTokenTTLSeconds : ( now / 1000 ) + DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS,
             at_hash: "",
             name: client.clientName,
             given_name: "",
@@ -163,8 +163,8 @@ class JwtService {
         const oidcTokenResponse: OIDCTokenResponse = {
             access_token: s,
             token_type: "Bearer",
-            refresh_token: client.maxRefreshTokenCount && client.maxRefreshTokenCount > 0 ? generateRandomToken(32) : null,
-            expires_in: ( now / 1000 ) + DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS,
+            refresh_token: null,
+            expires_in: client.clientTokenTTLSeconds ? ( now / 1000 ) + client.clientTokenTTLSeconds : ( now / 1000 ) + DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS,
             id_token: s
         }
         
@@ -274,6 +274,11 @@ class JwtService {
      */
     public async validateJwt(jwt: string): Promise<OIDCPrincipal | null> {
 
+        // TODO
+        // Create a jwt cache, check that first. Always check the expiration
+        // value of the cached data too.
+
+        
         const protectedHeader: ProtectedHeaderParameters = decodeProtectedHeader(jwt);
         const keyId = protectedHeader.kid;
         if(!keyId){

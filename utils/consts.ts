@@ -5,6 +5,9 @@
 // 
 // ************************************************************************** //
 export const DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS = 600; // 10 minutes 
+export const MAX_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS = 1200; // 20 minutes
+export const MIN_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS = 120; // 2 minutes
+
 export const DEFAULT_END_USER_TOKEN_TTL_SECONDS = 3600; // 1 hour
 export const MAX_END_USER_TOKEN_TTL_SECONDS = 43200; // 12 hours
 export const MIN_END_USER_TOKEN_TTL_SECONDS = 900; // 15 minutes

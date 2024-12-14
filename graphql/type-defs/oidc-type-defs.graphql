@@ -261,7 +261,8 @@ type Client {
     oidcEnabled: Boolean!
     pkceEnabled: Boolean!
     clientType: ClientType!
-    userTokenTTLSeconds: Int!
+    userTokenTTLSeconds: Int
+    clientTokenTTLSeconds: Int
     maxRefreshTokenCount: Int
 }
 
@@ -568,6 +569,7 @@ input ClientCreateInput {
     pkceEnabled: Boolean
     clientType: ClientType!
     userTokenTTLSeconds: Int
+    clientTokenTTLSeconds: Int
     maxRefreshTokenCount: Int
 }
 
@@ -582,6 +584,7 @@ input ClientUpdateInput {
     pkceEnabled: Boolean
     clientType: ClientType!
     userTokenTTLSeconds: Int
+    clientTokenTTLSeconds: Int
     maxRefreshTokenCount: Int
 }
 
