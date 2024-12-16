@@ -1,6 +1,6 @@
 import ClientService from "@/lib/service/client-service";
 import TenantService from "@/lib/service/tenant-service";
-import { Resolvers, QueryResolvers, MutationResolvers, Tenant, Client, SigningKey, Scope, AuthenticationGroup, Group, SigningKeyStatus, TenantType, FederatedOidcProvider, ClientAuthType } from "../generated/graphql-types";
+import { Resolvers, QueryResolvers, MutationResolvers, Tenant, Client, SigningKey, Scope, AuthenticationGroup, Group, SigningKeyStatus, TenantType, FederatedOidcProvider, OidcClientAuthType } from "../generated/graphql-types";
 import SigningKeysService from "@/lib/service/keys-service";
 import ScopeService from "@/lib/service/scope-service";
 import GroupService from "@/lib/service/group-service";
@@ -83,9 +83,8 @@ const resolvers: Resolvers = {
                 tenantDescription: tenantInput.tenantDescription ?? "",
                 allowUserSelfRegistration: tenantInput.allowUserSelfRegistration,
                 verifyEmailOnSelfRegistration: tenantInput.verifyEmailOnSelfRegistration,
-                delegatedAuthenticationConstraint: tenantInput.delegatedAuthenticationConstraint,
-                markForDelete: false,
-                federatedOIDCProviderId: tenantInput.federatedOIDCProviderId,
+                federatedAuthenticationConstraint: tenantInput.federatedAuthenticationConstraint,
+                markForDelete: false,                
                 tenantType: TenantType.RootTenant
             };
             await tenantService.createRootTenant(tenant);
@@ -102,9 +101,8 @@ const resolvers: Resolvers = {
                 tenantDescription: tenantInput.tenantDescription,
                 allowUserSelfRegistration: tenantInput.allowUserSelfRegistration,
                 verifyEmailOnSelfRegistration: tenantInput.verifyEmailOnSelfRegistration,
-                delegatedAuthenticationConstraint: tenantInput.delegatedAuthenticationConstraint,
+                federatedAuthenticationConstraint: tenantInput.federatedAuthenticationConstraint,
                 markForDelete: tenantInput.markForDelete,
-                federatedOIDCProviderId: tenantInput.federatedOIDCProviderId,
                 tenantType: TenantType.RootTenant
             }
             await tenantService.updateRootTenant(tenant);
@@ -121,9 +119,8 @@ const resolvers: Resolvers = {
                 tenantDescription: tenantInput.tenantDescription ?? "",
                 allowUserSelfRegistration: tenantInput.allowUserSelfRegistration,
                 verifyEmailOnSelfRegistration: tenantInput.verifyEmailOnSelfRegistration,
-                delegatedAuthenticationConstraint: tenantInput.delegatedAuthenticationConstraint,
+                federatedAuthenticationConstraint: tenantInput.federatedAuthenticationConstraint,
                 markForDelete: false,
-                federatedOIDCProviderId: tenantInput.federatedOIDCProviderId,
                 tenantType: tenantInput.tenantType
             }
             await tenantService.createTenant(tenant);
@@ -140,9 +137,8 @@ const resolvers: Resolvers = {
                 tenantDescription: tenantInput.tenantDescription,
                 allowUserSelfRegistration: tenantInput.allowUserSelfRegistration,
                 verifyEmailOnSelfRegistration: tenantInput.verifyEmailOnSelfRegistration,
-                delegatedAuthenticationConstraint: tenantInput.delegatedAuthenticationConstraint,
+                federatedAuthenticationConstraint: tenantInput.federatedAuthenticationConstraint,
                 markForDelete: tenantInput.markForDelete,
-                federatedOIDCProviderId: tenantInput.federatedOIDCProviderId,
                 tenantType: tenantInput.tenantType
             }
             const updatedTenant: Tenant = await tenantService.updateTenant(tenant);
@@ -204,7 +200,7 @@ const resolvers: Resolvers = {
                 use: keyInput.use,
                 keyId: "",
                 certificate: keyInput.certificate,
-                privateKey: keyInput.privateKey,
+                privateKeyPkcs8: keyInput.privateKey,
                 password: keyInput.password,
                 expiresAtMs: 0, // TODO - derive from the certificate's expiration
                 status: SigningKeyStatus.Active
@@ -346,10 +342,11 @@ const resolvers: Resolvers = {
                 federatedOIDCProviderWellKnownUri: oidcProviderInput.federatedOIDCProviderWellKnownUri,
                 refreshTokenAllowed: oidcProviderInput.refreshTokenAllowed,
                 usePkce: oidcProviderInput.usePkce,
-                clientAuthType: oidcProviderInput.clientAuthType || ClientAuthType.ClientSecretPost,
+                clientAuthType: oidcProviderInput.clientAuthType || OidcClientAuthType.ClientSecretPost,
                 federatedOIDCProviderClientSecret: oidcProviderInput.federatedOIDCProviderClientSecret,
                 federatedOIDCProviderDescription: oidcProviderInput.federatedOIDCProviderDescription,
-                federatedOIDCProviderTenantId: oidcProviderInput.federatedOIDCProviderTenantId
+                federatedOIDCProviderTenantId: oidcProviderInput.federatedOIDCProviderTenantId,
+                scopes: []
             };
             const providerService: FederatedOIDCProviderService = new FederatedOIDCProviderService(oidcContext);
             await providerService.createFederatedOIDCProvider(oidcProvider);
@@ -363,10 +360,11 @@ const resolvers: Resolvers = {
                 federatedOIDCProviderWellKnownUri: oidcProviderInput.federatedOIDCProviderWellKnownUri,
                 refreshTokenAllowed: oidcProviderInput.refreshTokenAllowed,
                 usePkce: oidcProviderInput.usePkce,
-                clientAuthType: oidcProviderInput.clientAuthType || ClientAuthType.ClientSecretPost,
+                clientAuthType: oidcProviderInput.clientAuthType || OidcClientAuthType.ClientSecretPost,
                 federatedOIDCProviderClientSecret: oidcProviderInput.federatedOIDCProviderClientSecret,
                 federatedOIDCProviderDescription: oidcProviderInput.federatedOIDCProviderDescription,
-                federatedOIDCProviderTenantId: oidcProviderInput.federatedOIDCProviderTenantId
+                federatedOIDCProviderTenantId: oidcProviderInput.federatedOIDCProviderTenantId,
+                scopes: []
             };
             const providerService: FederatedOIDCProviderService = new FederatedOIDCProviderService(oidcContext);
             await providerService.updateFederatedOIDCProvider(oidcProvider);

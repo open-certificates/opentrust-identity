@@ -1,4 +1,4 @@
-import { User, Tenant, Client, SigningKey, NameOrder, ClientAuthHistory } from "@/graphql/generated/graphql-types";
+import { User, Tenant, Client, SigningKey, NameOrder, ClientAuthHistory, TokenType } from "@/graphql/generated/graphql-types";
 import { getTenantDaoImpl, getClientDaoImpl, getIdentityDaoImpl, getSigningKeysDaoImpl, generateRandomToken } from "@/utils/dao-utils";
 import ClientDao from "@/lib/dao/client-dao";
 import TenantDao from "@/lib/dao/tenant-dao";
@@ -6,7 +6,7 @@ import IdentityDao from "@/lib/dao/identity-dao";
 import { OIDCTokenResponse } from "@/lib/models/token-response";
 import { JWTPayload, SignJWT, JWTVerifyResult, jwtVerify, decodeJwt, decodeProtectedHeader, ProtectedHeaderParameters } from "jose";
 import SigningKeysDao from "../dao/keys-dao";
-import { OIDCPrincipal, TokenType } from "../models/principal";
+import { OIDCPrincipal } from "../models/principal";
 import { randomUUID, createPrivateKey, PrivateKeyInput, KeyObject, createSecretKey, createPublicKey, PublicKeyInput } from "node:crypto"; 
 import NodeCache from "node-cache";
 import { CLIENT_SECRET_ENCODING, DEFAULT_END_USER_TOKEN_TTL_SECONDS, DEFAULT_SERVICE_ACCOUNT_TOKEN_TTL_SECONDS } from "@/utils/consts";
@@ -85,7 +85,7 @@ class JwtService {
             client_id: clientId,
             client_name: client.clientName,
             client_type: client.clientType,
-            token_type: TokenType.END_USER_TOKEN
+            token_type: TokenType.EndUserToken
         };
 
         const cachedSigningKeyData: CachedSigningKeyData | null = await this.getCachedSigningKey();
@@ -145,7 +145,7 @@ class JwtService {
             client_id: client.clientId,
             client_name: client.clientName,
             client_type: client.clientType,
-            token_type: TokenType.SERVICE_ACCOUNT_TOKEN
+            token_type: TokenType.ServiceAccountToken
         };
 
         const cachedSigningKeyData: CachedSigningKeyData | null = await this.getCachedSigningKey();
@@ -278,7 +278,7 @@ class JwtService {
         // Create a jwt cache, check that first. Always check the expiration
         // value of the cached data too.
 
-        
+
         const protectedHeader: ProtectedHeaderParameters = decodeProtectedHeader(jwt);
         const keyId = protectedHeader.kid;
         if(!keyId){
@@ -314,6 +314,69 @@ class JwtService {
         
     }
 
+    public async testJwtSign(jwtPayload: JWTPayload, pemPrivateKey: string, passphrase?: string): Promise<string> {
+
+        const privateKeyInput: PrivateKeyInput = {
+            key: pemPrivateKey,
+            encoding: "utf-8",
+            format: "pem",
+            passphrase: passphrase ? passphrase : undefined
+        };                    
+        const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
+
+        const s: string = await new SignJWT(jwtPayload)
+        .setProtectedHeader({
+            alg: "RS256",
+            kid: "1234567890"
+        })
+        .sign(privateKeyObject);
+        return s;
+    }
+
+    public async testJwtVerifySignatureWithPublicKey(jwt: string, pemPublicKey: string): Promise<OIDCPrincipal | null>{
+
+        const publicKeyInput: PublicKeyInput = {
+            key: pemPublicKey,
+            encoding: "utf-8",
+            format: "pem",
+
+        };
+        const publicKeyObject = createPublicKey(publicKeyInput);
+        try {
+            const p: JWTVerifyResult = await jwtVerify(jwt, publicKeyObject)
+            if(!p.payload){
+                return Promise.resolve(null);
+            }
+            else{
+                return Promise.resolve(p.payload as unknown as OIDCPrincipal);
+            }
+        }
+        catch(error){
+            console.log(error);
+            return Promise.resolve(null);
+        }
+    }
+
+    public async testJwtVerifySignatureWitCertificate(jwt: string, pemCertificate: string): Promise<OIDCPrincipal | null>{
+        const publicKeyInput: PublicKeyInput = {
+            key: pemCertificate,
+            encoding: "utf-8",
+            format: "pem"
+        };
+        const publicKeyObject = createPublicKey(publicKeyInput);
+        try {
+            const p: JWTVerifyResult = await jwtVerify(jwt, publicKeyObject)
+            if(!p.payload){
+                return Promise.resolve(null);
+            }
+            else{
+                return Promise.resolve(p.payload as unknown as OIDCPrincipal);
+            }
+        }
+        catch(error){
+            return Promise.resolve(null);
+        }
+    }
 
     /**
      * 
@@ -330,7 +393,7 @@ class JwtService {
                 return Promise.resolve(null);
             }
             const privateKeyInput: PrivateKeyInput = {
-                key: key.privateKey,
+                key: key.privateKeyPkcs8,
                 encoding: "utf-8",
                 format: "pem",
                 passphrase: key.password || undefined
@@ -338,7 +401,7 @@ class JwtService {
             const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
 
             const publicKeyInput: PublicKeyInput = {
-                key: key.certificate,
+                key: key.certificate ? key.certificate : key.publicKey ? key.publicKey : "",
                 encoding: "utf-8",
                 format: "pem"
             };
@@ -379,7 +442,7 @@ class JwtService {
             let cachedArray = signingKeys.map(
                 (key: SigningKey) => {
                     const privateKeyInput: PrivateKeyInput = {
-                        key: key.privateKey,
+                        key: key.privateKeyPkcs8,
                         encoding: "utf-8",
                         format: "pem",
                         passphrase: key.password || undefined
@@ -387,7 +450,7 @@ class JwtService {
                     const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
 
                     const publicKeyInput: PublicKeyInput = {
-                        key: key.certificate,
+                        key: key.certificate ? key.certificate : key.publicKey ? key.publicKey : "",
                         encoding: "utf-8",
                         format: "pem"
                     };

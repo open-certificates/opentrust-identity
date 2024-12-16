@@ -1,11 +1,4 @@
-import { ClientType } from "@/graphql/generated/graphql-types";
-
-
-
-export enum TokenType {
-    SERVICE_ACCOUNT_TOKEN,
-    END_USER_TOKEN
-}
+import { ClientType, TokenType } from "@/graphql/generated/graphql-types";
 
 export interface OIDCPrincipal {
     sub: string,

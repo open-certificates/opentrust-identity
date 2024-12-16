@@ -236,6 +236,11 @@ enum ClientType {
     USER_DELEGATED_PERMISSIONS_ONLY
 }
 
+enum TokenType {
+    SERVICE_ACCOUNT_TOKEN,
+    END_USER_TOKEN
+}
+
 
 # 1.    tenantId -      Parent tenant (write once, read only)
 # 2.    clientId -      GUID
@@ -365,9 +370,10 @@ type SigningKey {
     tenantId: String!    
     keyType: KeyType!
     use: String!
-    privateKey: String!
+    privateKeyPkcs8: String!
     password: String
-    certificate: String!
+    certificate: String
+    publicKey: String
     expiresAtMs: Float!
     status: SigningKeyStatus!
 }
