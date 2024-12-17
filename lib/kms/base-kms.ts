@@ -1,19 +1,12 @@
 import { AES_GCM_CIPHER, AES_KEY_LENGTH, AUTH_TAG_LENGTH, IV_LENGTH_IN_BYTES } from "@/utils/consts";
 import { generateKeySync, createCipheriv, randomBytes, KeyObject, CipherGCM, createDecipheriv, DecipherGCM } from "node:crypto";
 
-class BaseKms {
+abstract class BaseKms {
 
-    // abstract encrypt(data: string, aad?: string): Promise<string>;
+    abstract encrypt(data: string, aad?: string): Promise<string>;
+    
+    abstract decrypt(data: string, aad?: string): Promise<string>;
 
-    // abstract decrypt(data: string, aad?: string): Promise<string>;
-
-    public async encrypt(data: string, aad?: string): Promise<string>{
-        return Promise.resolve(data);
-    }
-
-    public async decrypt(data: string, aad?: string): Promise<string> {
-        return Promise.resolve(data);
-    }
 
     /**
      * 

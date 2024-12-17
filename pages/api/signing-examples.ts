@@ -6,7 +6,7 @@ import { ClientType, TokenType } from '@/graphql/generated/graphql-types';
 import JwtService from '@/lib/service/jwt-service';
 import { JWTPayload,  } from 'jose';
 import { generateRandomToken } from '@/utils/dao-utils';
-import BaseKms from '@/lib/kms/base-kms';
+import FSBasedKms from '@/lib/kms/fs-based-kms';
 
 const jwtService: JwtService = new JwtService();
 
@@ -135,7 +135,7 @@ const pemCert = pki.certificateToPem(cert);
 console.log(pemCert);
 
 
-const baseKms: BaseKms = new BaseKms();
+const kms: FSBasedKms = new FSBasedKms();
 
 export default async function handler(
 	req: NextApiRequest,
@@ -156,8 +156,8 @@ export default async function handler(
     // }
 
     const dataToEncrypt: string = "this is the data to encrypt";
-    const encryptedData: string = await baseKms.encryptWithKeyWrapping(dataToEncrypt, "additionalauthenticateddata");
-    const decryptedData = await baseKms.decryptWithKeyWrapping(encryptedData, "additionalauthenticateddata");
+    const encryptedData: string = await kms.encryptWithKeyWrapping(dataToEncrypt, "additionalauthenticateddata");
+    const decryptedData = await kms.decryptWithKeyWrapping(encryptedData, "additionalauthenticateddata");
     
     const obj = {
         data: dataToEncrypt,
