@@ -6,6 +6,7 @@ import { ClientType, TokenType } from '@/graphql/generated/graphql-types';
 import JwtService from '@/lib/service/jwt-service';
 import { JWTPayload,  } from 'jose';
 import { generateRandomToken } from '@/utils/dao-utils';
+import BaseKms from '@/lib/kms/base-kms';
 
 const jwtService: JwtService = new JwtService();
 
@@ -132,27 +133,38 @@ cert.sign(pki.privateKeyFromPem(decryptedPrivateKey));
 const pemCert = pki.certificateToPem(cert);
 
 console.log(pemCert);
-console.log("h");
 
+
+const baseKms: BaseKms = new BaseKms();
 
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
 
-    const signedJwt: string = await jwtService.testJwtSign(oidcPrincipal, privateKey || "", passphrase);
-    const verifiedJwt: OIDCPrincipal | null = await jwtService.testJwtVerifySignatureWithPublicKey(signedJwt, publicKey || "");
-    const certVerifiedJwt: OIDCPrincipal | null = await jwtService.testJwtVerifySignatureWitCertificate(signedJwt, pemCert);
+    // const signedJwt: string = await jwtService.testJwtSign(oidcPrincipal, privateKey || "", passphrase);
+    // const verifiedJwt: OIDCPrincipal | null = await jwtService.testJwtVerifySignatureWithPublicKey(signedJwt, publicKey || "");
+    // const certVerifiedJwt: OIDCPrincipal | null = await jwtService.testJwtVerifySignatureWitCertificate(signedJwt, pemCert);
 
-    const obj = {        
-        privateKey: privateKey,
-        publicKey: publicKey,
-        certificate: pemCert,
-        signedJwt: signedJwt,
-        verifiedJwt: verifiedJwt,
-        certVerifiedJwt: certVerifiedJwt
-    }
+    // const obj = {        
+    //     privateKey: privateKey,
+    //     publicKey: publicKey,
+    //     certificate: pemCert,
+    //     signedJwt: signedJwt,
+    //     verifiedJwt: verifiedJwt,
+    //     certVerifiedJwt: certVerifiedJwt
+    // }
+
+    const dataToEncrypt: string = "this is the data to encrypt";
+    const encryptedData: string = await baseKms.encryptWithKeyWrapping(dataToEncrypt, "additionalauthenticateddata");
+    const decryptedData = await baseKms.decryptWithKeyWrapping(encryptedData, "additionalauthenticateddata");
     
+    const obj = {
+        data: dataToEncrypt,
+        encryptedData,
+        decryptedData
+    }
+
     return res.status(200).json(obj);
 
 }

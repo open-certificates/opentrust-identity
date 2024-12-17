@@ -300,3 +300,15 @@ export const PASSWORD_PATTERN="[A-Za-z0-9_-!@#]";
 
 // Client-related constants
 export const CLIENT_SECRET_ENCODING = "base64";
+
+
+// ************************************************************************** //
+// 
+//                  CRYPTO-RELATED CONSTANTS
+// 
+// ************************************************************************** //
+export const IV_LENGTH_IN_BYTES=16;
+export const AUTH_TAG_LENGTH=16; // bits
+export const AES_KEY_LENGTH=256;  // bits
+// We may eventually support other ciphers (which SHOULD support authenticated data)
+export const AES_GCM_CIPHER="aes-256-gcm";
