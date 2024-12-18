@@ -75,8 +75,7 @@ class FSBasedTenantDao extends TenantDAO {
         tenantToUpdate.claimsSupported = tenant.claimsSupported;
         tenantToUpdate.enabled = tenant.enabled;
         tenantToUpdate.allowUserSelfRegistration = tenant.allowUserSelfRegistration;
-        tenantToUpdate.delegatedAuthenticationConstraint = tenant.delegatedAuthenticationConstraint;
-        tenantToUpdate.federatedOIDCProviderId = tenant.federatedOIDCProviderId;
+        tenantToUpdate.federatedAuthenticationConstraint = tenant.federatedAuthenticationConstraint;
         tenantToUpdate.markForDelete = tenant.markForDelete;
         tenantToUpdate.tenantType = tenant.tenantType;
         tenantToUpdate.verifyEmailOnSelfRegistration = tenant.verifyEmailOnSelfRegistration;

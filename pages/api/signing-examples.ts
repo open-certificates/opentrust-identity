@@ -68,8 +68,8 @@ const {publicKey, privateKey} = generateKeyPairSync(
     }
 );
 
-console.log(privateKey);
-console.log(publicKey);
+// console.log(privateKey);
+// console.log(publicKey);
 
 
 // 3.   We need to convert any encrypted private key (starting with 
@@ -86,7 +86,7 @@ const privateKeyInput: PrivateKeyInput = {
 const privateKeyObject: KeyObject = createPrivateKey(privateKeyInput);
 const decryptedPrivateKey = privateKeyObject.export({format: "pem", type: "pkcs8"}).toString();
 
-console.log(decryptedPrivateKey);
+//console.log(decryptedPrivateKey);
 
 
 // 4.   Use the forge library to generate a csr for our self-signed certificate
@@ -106,8 +106,7 @@ csr.setSubject([
 ]);
 csr.sign(pki.privateKeyFromPem(decryptedPrivateKey));
 
-console.log("csr verify is: " + csr.verify());
-console.log(pki.certificationRequestToPem(csr));
+//console.log(pki.certificationRequestToPem(csr));
 
 // 5.   Use the forge library to create the certificate and sign it.
 const cert: pki.Certificate = pki.createCertificate();
@@ -132,7 +131,7 @@ cert.publicKey = pki.publicKeyFromPem(publicKey);
 cert.sign(pki.privateKeyFromPem(decryptedPrivateKey));
 const pemCert = pki.certificateToPem(cert);
 
-console.log(pemCert);
+//console.log(pemCert);
 
 
 const kms: FSBasedKms = new FSBasedKms();
@@ -156,9 +155,11 @@ export default async function handler(
     // }
 
     const dataToEncrypt: string = "this is the data to encrypt";
-    const encryptedData: string = await kms.encryptWithKeyWrapping(dataToEncrypt, "additionalauthenticateddata");
-    const decryptedData = await kms.decryptWithKeyWrapping(encryptedData, "additionalauthenticateddata");
+    // const encryptedData: string | null = await kms.encryptWithKeyWrapping(dataToEncrypt, "additionalauthenticateddata");
+    // const decryptedData = await kms.decryptWithKeyWrapping(encryptedData || "", "additionalauthenticateddata");
     
+    const encryptedData: string | null = await kms.encrypt(dataToEncrypt, "additionalauthenticateddata");
+    const decryptedData = await kms.decrypt(encryptedData || "", "additionalauthenticateddata");
     const obj = {
         data: dataToEncrypt,
         encryptedData,

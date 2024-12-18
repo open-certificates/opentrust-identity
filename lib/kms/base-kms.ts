@@ -3,9 +3,9 @@ import { generateKeySync, createCipheriv, randomBytes, KeyObject, CipherGCM, cre
 
 abstract class BaseKms {
 
-    abstract encrypt(data: string, aad?: string): Promise<string>;
+    abstract encrypt(data: string, aad?: string): Promise<string | null>;
     
-    abstract decrypt(data: string, aad?: string): Promise<string>;
+    abstract decrypt(data: string, aad?: string): Promise<string | null>;
 
 
     /**
@@ -14,12 +14,12 @@ abstract class BaseKms {
      * @param aad 
      * @returns 
      */
-    public async encryptWithKeyWrapping(data: string, aad?: string): Promise<string>{
+    public async encryptWithKeyWrapping(data: string, aad?: string): Promise<string | null>{
 
         const aesKey: KeyObject = generateKeySync("aes", {length: AES_KEY_LENGTH});
         const iv: Buffer = randomBytes(IV_LENGTH_IN_BYTES);
         const cipher: CipherGCM = createCipheriv(AES_GCM_CIPHER, aesKey, iv, {authTagLength: AUTH_TAG_LENGTH});
-        //cipher.setEncoding("base64");
+        
         if(aad){
             cipher.setAAD(Buffer.from(aad));
         }
@@ -29,7 +29,10 @@ abstract class BaseKms {
         const authTag: Buffer = cipher.getAuthTag();
 
         // Encrypt the key using the implementation-dependent encryption routine or service.        
-        const encryptedKey: string = await this.encrypt(aesKey.export().toString("base64"));
+        const encryptedKey: string | null = await this.encrypt(aesKey.export().toString("base64"), aad);
+        if(!encryptedKey){
+            return Promise.resolve(null);
+        }
         const encryptedKeyBuffer = Buffer.from(encryptedKey, "base64");
 
         // Save the metadata and the encrypted key as a byte array in front
@@ -108,12 +111,16 @@ abstract class BaseKms {
                 2 + ivLength + 2 + algorithmLength + 2 + keyLength + 2,
                 2 + ivLength + 2 + algorithmLength + 2 + keyLength + 2 + authTagLength
             )
-            
+
             const encryptedData: Buffer = buffer.subarray(2 + ivLength + 2 + algorithmLength + 2 + keyLength + 2 + authTagLength);
 
             // Decrypt the key using the implementation-dependent decryption routine or service, then
             // decrypt the encrypted data making sure to add in any additoinal authentication data.
-            const key: string = await this.decrypt(keyBuffer.toString("base64"), aad);
+            const key: string | null = await this.decrypt(keyBuffer.toString("base64"), aad);
+            if(!key){
+                return Promise.resolve(null);
+            }
+
             const deCipher: DecipherGCM = createDecipheriv(AES_GCM_CIPHER, Buffer.from(key, "base64"), iv, {authTagLength: AUTH_TAG_LENGTH});
             if(aad){
                 deCipher.setAAD(Buffer.from(aad));

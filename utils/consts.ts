@@ -40,6 +40,7 @@ export const AUTHORIZATION_CODE_DATA_FILE = "authorization-code-data.json";
 export const REFRESH_TOKEN_FILE = "refresh-token.json";
 export const FEDERATED_OIDC_AUTHORIZATION_REL_FILE = "federated-oidc-authorization-rel.json";
 export const CLIENT_AUTH_HISTORY_FILE = "client-auth-history.json";
+export const KMS_KEYS_FILE = "kms-keys.json"
 
 
 // ************************************************************************** //
@@ -312,3 +313,4 @@ export const AUTH_TAG_LENGTH=16; // bits
 export const AES_KEY_LENGTH=256;  // bits
 // We may eventually support other ciphers (which SHOULD support authenticated data)
 export const AES_GCM_CIPHER="aes-256-gcm";
+export const MAX_ENCRYPTION_LENGTH = 65536;
