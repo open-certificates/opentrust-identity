@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { MikroORM, MySqlDriver } from '@mikro-orm/mysql';
 import { TenantEntity } from "../entities/tenant-entity";
+import { FederatedOIDCProviderEntity } from '../entities/federated-oidc-provider-entity';
 
 
 const connection = MikroORM.initSync(
@@ -15,7 +16,8 @@ const connection = MikroORM.initSync(
             min: 4
         },
         entities: [
-            TenantEntity
+            TenantEntity,
+            FederatedOIDCProviderEntity
         ]
     }
 );
