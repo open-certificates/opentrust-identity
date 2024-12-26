@@ -2,6 +2,10 @@ import 'reflect-metadata';
 import { MikroORM, MySqlDriver } from '@mikro-orm/mysql';
 import { TenantEntity } from "../entities/tenant-entity";
 import { FederatedOIDCProviderEntity } from '../entities/federated-oidc-provider-entity';
+import LoginFailurePolicyEntity from '../entities/login-failure-policy-entity';
+import TenantManagementDomainRelEntity from '../entities/tenant-management-domain-rel-entity';
+import FederatedOIDCProviderTenantRelEntity from '../entities/federated-oidc-provider-tenant-rel-entity';
+import SocialOIDCProviderTenantRelEntity from '../entities/social-oidc-provider-tenant-rel-entity';
 
 
 const connection = MikroORM.initSync(
@@ -17,7 +21,11 @@ const connection = MikroORM.initSync(
         },
         entities: [
             TenantEntity,
-            FederatedOIDCProviderEntity
+            FederatedOIDCProviderEntity,
+            LoginFailurePolicyEntity,
+            TenantManagementDomainRelEntity,
+            FederatedOIDCProviderTenantRelEntity,
+            SocialOIDCProviderTenantRelEntity
         ]
     }
 );
