@@ -1,12 +1,15 @@
 import 'reflect-metadata';
 import { MikroORM, MySqlDriver } from '@mikro-orm/mysql';
+//import { MikroORM as MySqlMikroORM, MsSqlDriver } from '@mikro-orm/mssql';
 import { TenantEntity } from "../entities/tenant-entity";
 import { FederatedOIDCProviderEntity } from '../entities/federated-oidc-provider-entity';
 import LoginFailurePolicyEntity from '../entities/login-failure-policy-entity';
 import TenantManagementDomainRelEntity from '../entities/tenant-management-domain-rel-entity';
 import FederatedOIDCProviderTenantRelEntity from '../entities/federated-oidc-provider-tenant-rel-entity';
 import SocialOIDCProviderTenantRelEntity from '../entities/social-oidc-provider-tenant-rel-entity';
-
+import FederatedOIDCProviderDomainRelEntity from '../entities/federated-oidc-provider-domain-rel-entity';
+import ClientEntity from '../entities/client-entity';
+import ClientRedirectUriRelEntity from '../entities/client-redirect-uri-rel-entity';
 
 const connection = MikroORM.initSync(
     {
@@ -19,14 +22,21 @@ const connection = MikroORM.initSync(
             max: 10,
             min: 4
         },
+        // driverOptions: {
+        //     authenticationScheme: "NTLM",
+        //     domain: "domain"
+        // },
         entities: [
             TenantEntity,
             FederatedOIDCProviderEntity,
             LoginFailurePolicyEntity,
             TenantManagementDomainRelEntity,
             FederatedOIDCProviderTenantRelEntity,
-            SocialOIDCProviderTenantRelEntity
-        ]
+            SocialOIDCProviderTenantRelEntity,
+            FederatedOIDCProviderDomainRelEntity,
+            ClientEntity,
+            ClientRedirectUriRelEntity
+        ],        
     }
 );
 
