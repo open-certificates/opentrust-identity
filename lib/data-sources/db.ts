@@ -18,7 +18,7 @@ import AuthenticationGroupUserRelEntity from '../entities/authentication-group-u
 import AuthorizationCodeDataEntity from '../entities/authorization-code-data-entity';
 import AuthorizationGroupEntity from '../entities/authorization-group-entity';
 import AuthorizationGroupScopeRelEntity from '../entities/authorization-group-scope-rel-entity';
-import ChangeEventDataEntity from '../entities/change-event-data-entity';
+//import ChangeEventDataEntity from '../entities/change-event-data-entity';
 import ChangeEventEntity from '../entities/change-event-entity';
 import ClientAuthHistoryEntity from '../entities/client-auth-history-entity';
 import ClientTenantScopeRelEntity from '../entities/client-tenant-scope-rel-entity';
@@ -67,7 +67,6 @@ const connection = MikroORM.initSync(
             AuthorizationCodeDataEntity,
             AuthorizationGroupEntity,
             AuthorizationGroupScopeRelEntity,
-            ChangeEventDataEntity,
             ChangeEventEntity,
             ClientAuthHistoryEntity,
             ClientEntity,
