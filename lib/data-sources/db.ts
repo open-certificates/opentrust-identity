@@ -47,7 +47,7 @@ import SchedulerLockEntity from '@/lib/entities/scheduler-lock-entity';
 import TenantPasswordConfigEntity from '@/lib/entities/tenant-password-config-entity';
 import TenantRestrictedAuthenticationDomainRelEntity from '@/lib/entities/tenant-restricted-authentication-domain-rel-entity';
 import UserFailedLoginAttemptsEntity from '@/lib/entities/user-failed-login-attempts-entity';
-import UserPasswordResetTokenEntity from '@/lib/entities/user-password-reset-token-entity';
+import UserVerificationTokenEntity from '@/lib/entities/user-verification-token-entity';
 
 
 const connection = MikroORM.initSync(
@@ -110,7 +110,7 @@ const connection = MikroORM.initSync(
             UserCredentialEntity,
             UserFailedLoginAttemptsEntity,
             UserEntity,
-            UserPasswordResetTokenEntity,
+            UserVerificationTokenEntity,
             UserScopeRelEntity,
             UserTenantRelEntity
             
