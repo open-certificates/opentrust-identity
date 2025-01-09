@@ -40,7 +40,7 @@ import UserCredentialEntity from '@/lib/entities/user-credential-entity';
 import UserEntity from '@/lib/entities/user-entity';
 import UserScopeRelEntity from '@/lib/entities/user-scope-rel-entity';
 import UserTenantRelEntity from '@/lib/entities/user-tenant-rel-entity';
-import ChangeEventDataEntity from '@/lib/entities/change-event-data-entity';
+
 import ClientScopeRelEntity from '@/lib/entities/client-tenant-scope-rel-entity';
 import ProhibitedPasswordEntity from '@/lib/entities/prohibited-password-entity';
 import SchedulerLockEntity from '@/lib/entities/scheduler-lock-entity';
@@ -77,7 +77,6 @@ const connection = MikroORM.initSync(
             AuthorizationCodeDataEntity,
             AuthorizationGroupEntity,
             AuthorizationGroupScopeRelEntity,
-            ChangeEventDataEntity,
             ChangeEventEntity,
             ClientAuthHistoryEntity,
             ClientEntity,
