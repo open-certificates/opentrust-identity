@@ -35,7 +35,7 @@ import TenantAnonymousUserConfigurationRelEntity from '@/lib/entities/tenant-ano
 import TenantLookAndFeelEntity from '@/lib/entities/tenant-look-and-feel-entity';
 import TenantRateLimitRelEntity from '@/lib/entities/tenant-rate-limit-rel-entity';
 import TenantScopeRelEntity from '@/lib/entities/tenant-scope-rel-entity';
-import UserAuthorizationGroupRelEntity from '@/lib/entities/user-authorization-group-rel-entity';
+import UserAuthorizationGroupRelEntity from '@/lib/entities/authorization-group-user-rel-entity';
 import UserCredentialEntity from '@/lib/entities/user-credential-entity';
 import UserEntity from '@/lib/entities/user-entity';
 import UserScopeRelEntity from '@/lib/entities/user-scope-rel-entity';
