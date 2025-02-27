@@ -11,7 +11,6 @@ import FederatedOIDCProviderDomainRelEntity from '@/lib/entities/federated-oidc-
 import ClientEntity from '@/lib/entities/client-entity';
 import ClientRedirectUriRelEntity from '@/lib/entities/client-redirect-uri-rel-entity';
 import AccessRuleEntity from '@/lib/entities/access-rule-entity';
-import AnonymousUserConfigurationEntity from '@/lib/entities/anonymous-user-configuration-entity';
 import AuthenticationGroupClientRelEntity from '@/lib/entities/authentication-group-client-rel-entity';
 import AuthenticationGroupEntity from '@/lib/entities/authentication-group-entity';
 import AuthenticationGroupUserRelEntity from '@/lib/entities/authentication-group-user-rel-entity';
@@ -31,6 +30,7 @@ import RefreshDataEntity from '@/lib/entities/refresh-data-entity';
 import ScopeConstraintSchemaEntity from '@/lib/entities/scope-access-rule-schema-entity';
 import ScopeEntity from '@/lib/entities/scope-entity';
 import SigningKeyEntity from '@/lib/entities/signing-key-entity';
+import TenantAnonymousUserConfigurationEntity from '@/lib/entities/tenant-anonymous-user-configuration-entity';
 import TenantAnonymousUserConfigurationRelEntity from '@/lib/entities/tenant-anonymous-user-configuration-rel-entity';
 import TenantLookAndFeelEntity from '@/lib/entities/tenant-look-and-feel-entity';
 import TenantRateLimitRelEntity from '@/lib/entities/tenant-rate-limit-rel-entity';
@@ -82,7 +82,6 @@ const connection = MikroORM.initSync(
         // },
         entities: [
             AccessRuleEntity,
-            AnonymousUserConfigurationEntity,
             AuthenticationGroupClientRelEntity,
             AuthenticationGroupEntity,
             AuthenticationGroupUserRelEntity,
@@ -112,6 +111,7 @@ const connection = MikroORM.initSync(
             ScopeEntity,
             SigningKeyEntity,
             SocialOIDCProviderTenantRelEntity,
+            TenantAnonymousUserConfigurationEntity,
             TenantAnonymousUserConfigurationRelEntity,
             TenantEntity,
             TenantLookAndFeelEntity,
