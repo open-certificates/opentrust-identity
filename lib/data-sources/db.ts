@@ -7,22 +7,14 @@ import SocialOIDCProviderTenantRelEntity from '@/lib/entities/social-oidc-provid
 import FederatedOIDCProviderDomainRelEntity from '@/lib/entities/federated-oidc-provider-domain-rel-entity';
 import ClientEntity from '@/lib/entities/client-entity';
 import ClientRedirectUriRelEntity from '@/lib/entities/client-redirect-uri-rel-entity';
-import AccessRuleEntity from '@/lib/entities/access-rule-entity';
-import AuthenticationGroupClientRelEntity from '@/lib/entities/authentication-group-client-rel-entity';
-import AuthenticationGroupEntity from '@/lib/entities/authentication-group-entity';
-import AuthenticationGroupUserRelEntity from '@/lib/entities/authentication-group-user-rel-entity';
-import AuthorizationCodeDataEntity from '@/lib/entities/authorization-code-data-entity';
 import AuthorizationGroupEntity from '@/lib/entities/authorization-group-entity';
 import AuthorizationGroupScopeRelEntity from '@/lib/entities/authorization-group-scope-rel-entity';
 import ChangeEventEntity from '@/lib/entities/change-event-entity';
 import ClientAuthHistoryEntity from '@/lib/entities/client-auth-history-entity';
-import FederatedOIDCAuthorizationRelEntity from '@/lib/entities/federated-oidc-authorization-rel-entity';
 import FooterLinkEntity from '@/lib/entities/footer-link-entity';
-import PreAuthenticationStateEntity from '@/lib/entities/pre-authentication-state-entity';
 import RateLimitEntity from '@/lib/entities/rate-limit-entity';
 import RateLimitServiceGroupEntity from '@/lib/entities/rate-limit-service-group-entity';
 import RateLimitServiceGroupScopeRelEntity from '@/lib/entities/rate-limit-service-group-scope-rel-entity';
-import RefreshDataEntity from '@/lib/entities/refresh-data-entity';
 import ScopeConstraintSchemaEntity from '@/lib/entities/scope-access-rule-schema-entity';
 import ScopeEntity from '@/lib/entities/scope-entity';
 import SigningKeyEntity from '@/lib/entities/signing-key-entity';
@@ -72,11 +64,6 @@ const connection = MikroORM.initSync(
         //     domain: DB_USER_DOMAIN || "domain"
         // },
         entities: [
-            AccessRuleEntity,
-            AuthenticationGroupClientRelEntity,
-            AuthenticationGroupEntity,
-            AuthenticationGroupUserRelEntity,
-            AuthorizationCodeDataEntity,
             AuthorizationGroupEntity,
             AuthorizationGroupScopeRelEntity,
             ChangeEventEntity,
@@ -84,18 +71,15 @@ const connection = MikroORM.initSync(
             ClientEntity,
             ClientRedirectUriRelEntity,
             ClientScopeRelEntity,
-            FederatedOIDCAuthorizationRelEntity,
             FederatedOIDCProviderDomainRelEntity,
             FederatedOIDCProviderEntity,
             FederatedOIDCProviderTenantRelEntity,
             FooterLinkEntity,
             LoginFailurePolicyEntity,
-            PreAuthenticationStateEntity,
             ProhibitedPasswordEntity,
             RateLimitEntity,
             RateLimitServiceGroupEntity,
             RateLimitServiceGroupScopeRelEntity,
-            RefreshDataEntity,
             SchedulerLockEntity,
             ScopeConstraintSchemaEntity,
             ScopeEntity,
