@@ -7,11 +7,8 @@ import FooterLinkEntity from '@/lib/entities/footer-link-entity';
 import RateLimitEntity from '@/lib/entities/rate-limit-entity';
 import RateLimitServiceGroupScopeRelEntity from '@/lib/entities/rate-limit-service-group-scope-rel-entity';
 import ScopeConstraintSchemaEntity from '@/lib/entities/scope-access-rule-schema-entity';
-import ScopeEntity from '@/lib/entities/scope-entity';
 import SigningKeyEntity from '@/lib/entities/signing-key-entity';
-import TenantAvailableScopeEntity from '@/lib/entities/tenant-available-scope-entity';
 import UserScopeRelEntity from '@/lib/entities/user-scope-rel-entity';
-import ClientScopeRelEntity from '@/lib/entities/client-scope-rel-entity';
 import SchedulerLockEntity from '@/lib/entities/scheduler-lock-entity';
 import UserFido2CounterRelEntity from '@/lib/entities/user-fido2-counter-rel-entity';
 
@@ -45,20 +42,16 @@ const connection = MikroORM.initSync(
         // },
         entities: [
             AuthorizationGroupScopeRelEntity,
-            ClientScopeRelEntity,
             FooterLinkEntity,
             LoginFailurePolicyEntity,
             RateLimitEntity,
             RateLimitServiceGroupScopeRelEntity,
             SchedulerLockEntity,
             ScopeConstraintSchemaEntity,
-            ScopeEntity,
             SigningKeyEntity,
             SocialOIDCProviderTenantRelEntity,
-            TenantAvailableScopeEntity,
             UserFido2CounterRelEntity,
-            UserScopeRelEntity
-            
+            UserScopeRelEntity            
         ],        
     }
 );
