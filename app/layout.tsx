@@ -42,6 +42,25 @@ const theme = createTheme({
                 }                
             }
         },
+        MuiCheckbox: {
+            styleOverrides: {
+                root: {
+                    "&.Mui-checked": {
+                        color: `${DEFAULT_BACKGROUND_COLOR} !important`
+                    }
+                }
+            }
+        },
+        MuiOutlinedInput: {
+            styleOverrides: {
+                root: {
+                    // Focused
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: DEFAULT_BACKGROUND_COLOR,
+                    }
+                }
+            }
+        },
         MuiAccordion: {
             styleOverrides: {
                 heading: {
@@ -109,35 +128,26 @@ export default function RootLayout({
                         <PageTitleContextProvider>
                             <ClipboardCopyContextProvider>
                                 <AuthenSessionContextProvider>
-                                    <ApolloProvider client={client}>
-                                        {/* {isProfileLayoutPage &&
-                                            <ProfilePreProcessorContextProvider>
-                                                <TenantContextProvider>
-                                                    <AuthenticationLayout>{children}</AuthenticationLayout>
-                                                </TenantContextProvider>                                            
-                                            </ProfilePreProcessorContextProvider>
-                                        } */}
-                                        
-                                            <AuthContextProvider>
-                                                <TenantContextProvider>
-                                                    {isProfileLayoutPage &&
-                                                        <ProfilePreProcessorContextProvider>
-                                                            <AuthenticationLayout>{children}</AuthenticationLayout>
-                                                        </ProfilePreProcessorContextProvider>
-                                                    }
-                                                    {!isProfileLayoutPage && isAuthenticationLayoutPage &&                                                         
-                                                        <AuthenticationLayout>{children}</AuthenticationLayout>                                                        
-                                                    }
-                                                    {!isProfileLayoutPage && !isAuthenticationLayoutPage &&
-                                                        <ManagementTenantFilter>
-                                                            <ThemeProvider theme={theme}>
-                                                                <ManagementLayout>{children}</ManagementLayout>
-                                                            </ThemeProvider>
-                                                        </ManagementTenantFilter>                                                                            
-                                                    }
-                                                </TenantContextProvider>
-                                            </AuthContextProvider>
-                                        
+                                    <ApolloProvider client={client}>                                        
+                                        <AuthContextProvider>
+                                            <TenantContextProvider>
+                                                {isProfileLayoutPage &&
+                                                    <ProfilePreProcessorContextProvider>
+                                                        <AuthenticationLayout>{children}</AuthenticationLayout>
+                                                    </ProfilePreProcessorContextProvider>
+                                                }
+                                                {!isProfileLayoutPage && isAuthenticationLayoutPage &&                                                         
+                                                    <AuthenticationLayout>{children}</AuthenticationLayout>                                                        
+                                                }
+                                                {!isProfileLayoutPage && !isAuthenticationLayoutPage &&
+                                                    <ManagementTenantFilter>
+                                                        <ThemeProvider theme={theme}>
+                                                            <ManagementLayout>{children}</ManagementLayout>
+                                                        </ThemeProvider>
+                                                    </ManagementTenantFilter>                                                                            
+                                                }
+                                            </TenantContextProvider>
+                                        </AuthContextProvider>                                        
                                     </ApolloProvider>
                                 </AuthenSessionContextProvider>
                             </ClipboardCopyContextProvider>
