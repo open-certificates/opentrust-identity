@@ -22,6 +22,32 @@ import { InternationalizationContextProvider } from "@/components/contexts/inter
 
 const theme = createTheme({    
     components: {
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                    },
+                    '& .MuiFilledInput-root': {
+                        borderRadius: '16px 16px 0 0',
+                    }
+                }
+            }
+        },
+        MuiSelect: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 2,
+                }
+            }
+        },
+        MuiAutocomplete: {
+            styleOverrides: {
+                inputRoot: {
+                    borderRadius: 2,
+                }
+            }
+        },
         MuiButton: {
             defaultProps: {
                 
@@ -48,6 +74,24 @@ const theme = createTheme({
                     "&.Mui-checked": {
                         color: `${DEFAULT_BACKGROUND_COLOR} !important`
                     }
+                }
+            }
+        },
+        MuiSwitch: {
+            styleOverrides: {
+                switchBase: {
+                    // Controls the thumb (circle) color when checked
+                    "&.Mui-checked": {
+                        color: DEFAULT_BACKGROUND_COLOR,
+                    },
+                    // Controls the track color when checked
+                    "&.Mui-checked + .MuiSwitch-track": {
+                        backgroundColor: `${DEFAULT_BACKGROUND_COLOR} !important`,
+                        opacity: 0.5,
+                    }
+                },
+                track: {
+                    // Default unchecked track styling is fine
                 }
             }
         },
