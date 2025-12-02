@@ -443,9 +443,19 @@ class IdentityService {
                     await authenticationGroupDao.removeUserFromAuthenticationGroup(userId, authnGroups[i].authenticationGroupId);
                 }
 
-                let userScopes: Array<UserScopeRel> = await scopeDao.getUserScopeRels(userId, tenantId);
+                const userScopes: Array<UserScopeRel> = await scopeDao.getUserScopeRels(userId, tenantId);
                 for(let i = 0; i < userScopes.length; i++){
                     await scopeDao.removeScopeFromUser(tenantId, userId, userScopes[i].scopeId);
+                }
+
+                // Delete all refresh tokens tied to this tenant id
+                const arr: Array<RefreshData> = await authDao.getRefreshDataByUserId(userId);
+                if(arr && arr.length > 0){
+                    for(let i = 0; i < arr.length; i++){
+                        if(arr[i].tenantId === tenantId){
+                            await authDao.deleteRefreshDataByRefreshToken(arr[i].refreshToken);
+                        }
+                    }                    
                 }
             }
         }        

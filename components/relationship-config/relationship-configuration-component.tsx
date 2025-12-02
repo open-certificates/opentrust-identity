@@ -27,8 +27,8 @@ export interface RelationshipConfigurationComponentProps {
     searchObjectsText: string,
     confirmRemovalText: string,
     noObjectsFoundText: string,
-    onRemove: (id: string) => void,
-    onAdd: (id: string) => void
+    onRemove: (id: string, successCallback: () => void) => void,
+    onAdd: (id: string, successCallback: () => void) => void
 }
 
 const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComponentProps> = ({
@@ -53,7 +53,8 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
     const [filterTerm, setFilterTerm] = React.useState<string | null>(relSearchInput.term || "");
     const [page, setPage] = React.useState<number>(relSearchInput.page);    
     const [idToAdd, setIdToAdd] = React.useState<string | null>(null);
-    const [idToRemove, seIdToRemove] = React.useState<string | null>(null);
+    const [idToRemove, setIdToRemove] = React.useState<string | null>(null);
+    const [confirmationName, setConfirmationName] = React.useState<string | null>(null);
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const [addErrorMessage, setAddErrorMessage] = React.useState<string | null>(null);
     const [showAddDialog, setShowAddDialog] = React.useState<boolean>(false);
@@ -67,7 +68,10 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                 childtype: relSearchInput.childtype,
                 page: page,
                 perPage: perPage,
-                term: filterTerm
+                term: filterTerm,                
+                childid: relSearchInput.childid,                
+                owningtenantid: relSearchInput.owningtenantid,
+                parenttype: relSearchInput.parenttype                
             }
         },
         fetchPolicy: "no-cache",
@@ -85,7 +89,10 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                 childtype: relSearchInput.childtype,
                 page: (newPage + 1),
                 perPage: perPage,
-                term: filterTerm
+                term: filterTerm,
+                childid: relSearchInput.childid,                
+                owningtenantid: relSearchInput.owningtenantid,
+                parenttype: relSearchInput.parenttype
             }
         });
     }
@@ -102,7 +109,10 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                     childtype: relSearchInput.childtype,
                     page: 1,
                     perPage: perPage,
-                    term: term
+                    term: term,
+                    childid: relSearchInput.childid,                
+                    owningtenantid: relSearchInput.owningtenantid,
+                    parenttype: relSearchInput.parenttype  
                 }
             });
         }
@@ -114,7 +124,10 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                     childtype: relSearchInput.childtype,
                     page: 1,
                     perPage: perPage,
-                    term: ""
+                    term: "",
+                    childid: relSearchInput.childid,                
+                    owningtenantid: relSearchInput.owningtenantid,
+                    parenttype: relSearchInput.parenttype  
                 }
             });
         }
@@ -176,12 +189,12 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                 <Dialog
                     open={showRemoveDialog}
                     onClose={() => setShowRemoveDialog(false)}
-                    maxWidth="xs"
+                    maxWidth="sm"
                     fullWidth={true}
                 >
                     <DialogContent>
                         <Typography component="div">
-                            <span>{confirmRemovalText}</span><span style={{ fontWeight: "bold" }}>{""}</span>
+                            <span>{confirmRemovalText} </span><span style={{ fontWeight: "bold" }}>{confirmationName || ""}</span>
                         </Typography>
                     </DialogContent>
                     <DialogActions>
@@ -195,7 +208,7 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                         <Button
                             onClick={() => {
                                 if(idToRemove){
-                                    onRemove(idToRemove);
+                                    onRemove(idToRemove, refetch);
                                 }
                                 setShowRemoveDialog(false);
                             }}
@@ -252,7 +265,7 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                             onClick={() => {
                                 setShowAddDialog(false)
                                 if(idToAdd){
-                                    onAdd(idToAdd);
+                                    onAdd(idToAdd, refetch);
                                 }
                             }}
                             disabled={
@@ -269,8 +282,9 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                 <RelList
                     relSearchResults={previousData.relSearch}
                     noObjectsFoundText={noObjectsFoundText}
-                    removeRelAction={(id: string) => {
-                        seIdToRemove(id);
+                    removeRelAction={(id: string, confirmationName: string) => {
+                        setIdToRemove(id);
+                        setConfirmationName(confirmationName);
                         setShowRemoveDialog(true);
                     }}
                     nameFormatter={relSearchInput.childtype === SearchResultType.User ? usernameFormatter : undefined}
@@ -281,8 +295,9 @@ const RelationshipConfigurationComponent: React.FC<RelationshipConfigurationComp
                 <RelList
                     relSearchResults={data.relSearch}
                     noObjectsFoundText={noObjectsFoundText}
-                    removeRelAction={(id: string) => {
-                        seIdToRemove(id);
+                    removeRelAction={(id: string, confirmationName: string) => {
+                        setIdToRemove(id);
+                        setConfirmationName(confirmationName);
                         setShowRemoveDialog(true);
                     }}
                     nameFormatter={relSearchInput.childtype === SearchResultType.User ? usernameFormatter : undefined}
@@ -533,7 +548,7 @@ const RelSearch: React.FC<RelSearchProps> = ({
 interface RelListProps {
     relSearchResults: RelSearchResults,
     noObjectsFoundText: string,
-    removeRelAction: (id: string) => void,
+    removeRelAction: (id: string, confirmName: string) => void,
     nameFormatter?: (name: string) => string,
     canDelete: boolean
 }
@@ -566,7 +581,7 @@ const RelList: React.FC<RelListProps> = ({
                                         {canDelete &&
                                             <RemoveCircleOutlineIcon
                                                 sx={{ cursor: "pointer" }}
-                                                onClick={() => removeRelAction(item.childid)}
+                                                onClick={() => removeRelAction(item.childid, item.childname)}
                                             />
                                         }
                                     </Grid2>
